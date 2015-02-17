@@ -1,3 +1,7 @@
 
 Log of all decisions, assumptions, reasoning behind design decisions
 ====================================================================
+1.	Created a Subcontractor class to be used as a transfer object - Value Object Design Pattern
+	For ease of transferring a record or data.
+	
+2. List<String> chosen for specialites, list size will be unknown size.
