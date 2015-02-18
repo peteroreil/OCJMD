@@ -81,4 +81,8 @@ public class SubcontractorTest {
 		assertFalse(subcontractor.equals(otherSubContractor));
 	}
 
+	@Test
+	public void test() {
+		System.out.println(System.getProperty("user.dir"));
+	}
 }

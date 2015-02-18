@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 /**
  * Subcontractor class used as a transfer object
  * 
- * @author epetore
+ * @author Peter O'Reilly
  * @version 1.0.0 * 
  */
 
@@ -16,7 +16,8 @@ import java.util.logging.Logger;
 public class Subcontractor implements Serializable{
 	
 	private static final long serialVersionUID = 1L;
-	private static Logger log = Logger.getLogger("suncertify.db.Subcontractor");
+	public static final int RECORD_LENGTH = 0;
+	private static Logger log = Logger.getLogger("suncertify");
 	private List<String> specialities;
 	private String name;
 	private String cityName;
@@ -154,7 +155,7 @@ public class Subcontractor implements Serializable{
 	}
 
 	/**
-	 * @param customerId sets the customer ID. Takes an 8-Digit int.
+	 * @param customerId sets the customer ID. Takes an 8-Digit String.
 	 * @throws IllegalArgumentException if the param is less or greater than 8 digits
 	 */
 	public void setCustomerId(String customerId) throws IllegalArgumentException{
@@ -179,8 +180,8 @@ public class Subcontractor implements Serializable{
 	}
 	
 	/**
-	 * Compares two Subcontractor objects on {@name} and {@cityName}
-	 * @return true if both are equal
+	 * Compares two Subcontractor objects on String <b>name</b> and String <b>cityName</b>
+	 * @return <b>true</b> if both are equal
 	 */
 	@Override
 	public boolean equals(Object subcontractor) {

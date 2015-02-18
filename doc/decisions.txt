@@ -1,6 +1,9 @@
 
 Log of all decisions, assumptions, reasoning behind design decisions
 ====================================================================
+
+Subcontractor.class
+-------------------
 1.	Created a Subcontractor class to be used as a transfer object - Value Object Design Pattern
 	For ease of transferring a record or data. Also allows for how params should be set, see point below
 	on setting customer ID.
@@ -20,4 +23,17 @@ Log of all decisions, assumptions, reasoning behind design decisions
 6.	Since no key exists in DB and there is no unique identifier for a contractor, such as telephone number,
 	Subcontractor equality is based on two attributes: their name and location. If the a contractor of the same name
 	works in the same geographic location, we have a problem.
+	
+
+SubcontractorDatabase.class
+---------------------------
+1.	Constructor allows for setting filepath of db location. To cater for multiple locations, client server or standalone 
+	scenario. Using constructor chaining.
+	
+2. Class is implementing our required interface.
+
+3. Using Facade design pattern to abstract logic from user.
+
+4.	Throwing a custom exception in the event of a FileNotFoundException or IOException. Reasoning if we switch
+	DB to non file.
 	
