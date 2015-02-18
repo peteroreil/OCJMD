@@ -2,6 +2,17 @@
 Log of all decisions, assumptions, reasoning behind design decisions
 ====================================================================
 1.	Created a Subcontractor class to be used as a transfer object - Value Object Design Pattern
-	For ease of transferring a record or data.
+	For ease of transferring a record or data. Also allows for how params should be set, see point below
+	on setting customer ID.
 	
-2. List<String> chosen for specialites, list size will be unknown size.
+2. 	List<String> chosen for specialites, list size will be unknown size.
+
+3. 	Subcontractor Constructor does not take the id of the customer as a param. Assuming that 
+	if a Subcontractor is being created that there will be no customer to be assigned immediately.
+	
+4.	The Database Schema specifies and 8 digit number for the customer ID. It is assumed that this
+	digit has to be exactly 8 Digits. Setter method setCustomerId throws and IllegalArgumentException
+	in event that param is < or > 8 digits.	
+	
+5.	The setEmployeeCount will throw IllegalArgumentException in event there is less than 0 passed as
+	an argument. Does not make sense that an subcontractor can have negative number employees.
