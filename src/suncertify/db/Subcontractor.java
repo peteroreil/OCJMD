@@ -6,7 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Subcontractor object used as a transfer object
+ * Subcontractor class used as a transfer object
  * 
  * @author epetore
  * @version 1.0.0 * 
@@ -49,7 +49,7 @@ public class Subcontractor implements Serializable{
 	}
 
 	/**
-	 * @return the subcontractor's name
+	 * @return the Subcontractor's name
 	 */
 	public String getSubcontractorName() {
 		log.entering("Subcontractor", "getSubcontractorName");
