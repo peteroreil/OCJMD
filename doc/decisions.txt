@@ -16,3 +16,8 @@ Log of all decisions, assumptions, reasoning behind design decisions
 	
 5.	The setEmployeeCount will throw IllegalArgumentException in event there is less than 0 passed as
 	an argument. Does not make sense that an subcontractor can have negative number employees.
+	
+6.	Since no key exists in DB and there is no unique identifier for a contractor, such as telephone number,
+	Subcontractor equality is based on two attributes: their name and location. If the a contractor of the same name
+	works in the same geographic location, we have a problem.
+	

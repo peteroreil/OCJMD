@@ -17,12 +17,13 @@ public class Subcontractor implements Serializable{
 	
 	private static final long serialVersionUID = 1L;
 	private static Logger log = Logger.getLogger("suncertify.db.Subcontractor");
-	private String subcontractorName;
+	private List<String> specialities;
+	private String name;
 	private String cityName;
 	private String hourlyRate;
-	private List<String> specialities;
+	private String customerId;
 	private int employeeCount;
-	private int customerId;
+	
 	
 	public Subcontractor() {
 		log.finer("No Arg Constructor for Subcontractor");
@@ -40,7 +41,7 @@ public class Subcontractor implements Serializable{
 			String hourlyRate, List<String> specialities, int employeeCount) {
 		log.entering("Subcontractor", "Subcontractor", new Object[]{subcontractorName, 
 				cityName, hourlyRate, specialities, employeeCount});
-		this.subcontractorName = subcontractorName;
+		this.name = subcontractorName;
 		this.cityName = cityName;
 		this.hourlyRate = hourlyRate;
 		this.specialities = specialities;
@@ -51,18 +52,18 @@ public class Subcontractor implements Serializable{
 	/**
 	 * @return the Subcontractor's name
 	 */
-	public String getSubcontractorName() {
+	public String getName() {
 		log.entering("Subcontractor", "getSubcontractorName");
-		log.exiting("Subcontractor", "getSubcontractorName", subcontractorName);
-		return subcontractorName;
+		log.exiting("Subcontractor", "getSubcontractorName", name);
+		return name;
 	}
 
 	/**
 	 * @param subcontractorName sets the Subcontractor's name
 	 */
-	public void setSubcontractorName(String subcontractorName) {
+	public void setName(String subcontractorName) {
 		log.entering("Subcontractor", "setSubcontractorName", subcontractorName);
-		this.subcontractorName = subcontractorName;
+		this.name = subcontractorName;
 		log.exiting("Subcontractor", "setSubcontractorName");
 	}
 
@@ -146,7 +147,7 @@ public class Subcontractor implements Serializable{
 	/**
 	 * @return the 8-digit customer ID who currently has booked this Subcontractor
 	 */
-	public int getCustomerId() {
+	public String getCustomerId() {
 		log.entering("Subcontractor", "getCustomerId");
 		log.exiting("Subcontractor", "getCustomerId", customerId);
 		return customerId;
@@ -156,17 +157,52 @@ public class Subcontractor implements Serializable{
 	 * @param customerId sets the customer ID. Takes an 8-Digit int.
 	 * @throws IllegalArgumentException if the param is less or greater than 8 digits
 	 */
-	public void setCustomerId(int customerId) throws IllegalArgumentException{
-		log.entering("Subcontractor", "setCustomerId", customerId);
-		int maxValue = 99999999;
-		int minValue = 10000000;		
-		if (customerId > maxValue || customerId < minValue) {
-			log.log(Level.SEVERE, "Incorrect customerId length: "+customerId+". Should"
-					+"be 8-Digits");
-			throw new IllegalArgumentException("A customer ID must be an 8-Digit number");
+	public void setCustomerId(String customerId) throws IllegalArgumentException{
+		log.entering("Subcontractor", "setCustomerId", customerId);		
+		try {
+			Integer.parseInt(customerId);
+			
+			if (customerId.length() != 8) {
+				throw new RuntimeException();
+			}
+			
+			this.customerId = customerId;
+			
+		} catch (RuntimeException nfe) {
+			String errMessage = "Customer ID must be 8 Digits. ID="+customerId;
+			log.log(Level.SEVERE, errMessage);
+			throw new IllegalArgumentException(errMessage); 
+			
+		} finally {
+			log.exiting("Subcontractor", "setCustomerId");
 		}		
-		this.customerId = customerId;
-		log.exiting("Subcontractor", "setCustomerId");
+	}
+	
+	/**
+	 * Compares two Subcontractor objects on {@name} and {@cityName}
+	 * @return true if both are equal
+	 */
+	@Override
+	public boolean equals(Object subcontractor) {
+		log.entering("Subcontractor", "equals", subcontractor);	
+		if(!(subcontractor instanceof Subcontractor)) {
+			return false;
+		}				
+		Subcontractor otherSub = (Subcontractor) subcontractor;		
+		String otherSubName = otherSub.getName();
+		String otherSubCity = otherSub.getCityName();		
+		boolean isNameEqual = (this.name == null) ? (otherSubName == null) : this.name.equals(otherSubName);
+		boolean isCityEqual = (this.cityName == null) ? (otherSubCity == null) : this.cityName.equals(otherSubCity);				
+		boolean areEqual = isNameEqual && isCityEqual;
+		log.exiting("Subcontractor", "equals", areEqual);	
+		
+		return areEqual;
+	}
+	
+	
+	@Override
+	public int hashCode() {
+		return (this.name+this.cityName).hashCode();
 	}
 	
 }
