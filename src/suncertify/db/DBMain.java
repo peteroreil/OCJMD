@@ -1,5 +1,6 @@
 package suncertify.db;
 
+
 public interface DBMain {
 	// Reads a record from the file. Returns an array where each
 	  // element is a record value.
