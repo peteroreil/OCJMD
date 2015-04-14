@@ -1,7 +1,6 @@
 package suncertify.dbtest;
 
 import static org.junit.Assert.*;
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -14,6 +13,22 @@ public class SubcontractorTest {
 	@Before
 	public void setup() {
 		subcontractor = new Subcontractor();
+	}
+	
+	@Test
+	public void shouldCreateAValidSubcontractor() {
+		String specialities = "speciality";
+		String name = "name";
+		String city = "city";
+		String hourlyRate = "123";
+		String employeeCount = "1";
+		String owner = "12345678";
+		new Subcontractor(name, city, hourlyRate, specialities, employeeCount, owner);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void shouldThrowExceptionIfNull() {
+		subcontractor.setCustomerId(null);
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
@@ -48,13 +63,19 @@ public class SubcontractorTest {
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void shouldNotAllowNegativeNumberOfEmployees() {
-		subcontractor.setEmployeeCount(-1);
+		subcontractor.setEmployeeCount("-1");
 	}
 	
 	@Test
 	public void shouldAllowPositiveNumberofEmployees() {
-		subcontractor.setEmployeeCount(0);
-		assertEquals(0, subcontractor.getEmployeeCount());
+		subcontractor.setEmployeeCount("0");
+		assertEquals("0", subcontractor.getEmployeeCount());
+	}
+	
+	@Test
+	(expected=IllegalArgumentException.class)
+	public void shouldNotAllowCharactersForEmployeeNumbers() {
+		subcontractor.setEmployeeCount("abc");
 	}
 	
 	@Test
@@ -74,7 +95,8 @@ public class SubcontractorTest {
 		Subcontractor otherSubContractor = new Subcontractor();
 		String name = "name";
 		String city = "city";
-		subcontractor.setCityName(null);
+		String otherCity = "otherCity";
+		subcontractor.setCityName(otherCity);
 		subcontractor.setName(name);
 		otherSubContractor.setCityName(city);
 		otherSubContractor.setName(name);
@@ -82,7 +104,16 @@ public class SubcontractorTest {
 	}
 
 	@Test
-	public void test() {
-		System.out.println(System.getProperty("user.dir"));
+	(expected=IllegalArgumentException.class)
+	public void shouldNotAllowAListOfZeroSpecialities() {
+		String specialities = "";
+		subcontractor.setSpecialities(specialities);
+	}
+	
+	@Test
+	(expected=IllegalArgumentException.class)
+	public void shouldNotAllowNullSpecialities() {
+		String specialities = null;
+		subcontractor.setSpecialities(specialities);
 	}
 }

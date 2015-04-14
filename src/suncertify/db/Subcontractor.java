@@ -1,34 +1,44 @@
 package suncertify.db;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Subcontractor class used as a transfer object
  * 
  * @author Peter O'Reilly
- * @version 1.0.0 * 
+ * @version 1.0.0  
  */
 
 
 public class Subcontractor implements Serializable{
+
+	public static final int RECORD_LENGTH = 182;
+    public static final int VALID_RECORD_LENGTH = 1; 
+    public static final int TOTAL_RECORD_LENGTH = RECORD_LENGTH + VALID_RECORD_LENGTH;    
+    public static final int NAME_BYTES_LENGTH = 4;
+	public static final int NAME_LENGTH = 32;
+	public static final int LOCATION_BYTES_LENGTH = 8;
+	public static final int LOCATION_LENGTH = 64;
+	public static final int SPECIALITIES_BYTES_LENGTH = 11;
+	public static final int SPECIALITIES_LENGTH = 64;
+	public static final int SIZE_BYTES_LENGTH = 4;
+	public static final int SIZE_LENGTH = 6;
+	public static final int RATE_BYTES_LENGTH = 4;
+	public static final int RATE_LENGTH = 8;
+	public static final int OWNER_BYTES_LENGTH = 5;
+	public static final int OWNER_LENGTH = 8;
 	
 	private static final long serialVersionUID = 1L;
-	public static final int RECORD_LENGTH = 0;
-	private static Logger log = Logger.getLogger("suncertify");
-	private List<String> specialities;
+	private String specialities;
 	private String name;
 	private String cityName;
 	private String hourlyRate;
 	private String customerId;
-	private int employeeCount;
+	private String employeeCount;
+	private Integer recordNumber;
 	
 	
-	public Subcontractor() {
-		log.finer("No Arg Constructor for Subcontractor");
-	}
+	public Subcontractor() {}
 
 	/**
 	 * Creates an instance of the Subcontractor class with the specified parameters
@@ -39,23 +49,19 @@ public class Subcontractor implements Serializable{
 	 * @param employeeCount The number of workers available when record is booked
 	 */
 	public Subcontractor(String subcontractorName, String cityName,
-			String hourlyRate, List<String> specialities, int employeeCount) {
-		log.entering("Subcontractor", "Subcontractor", new Object[]{subcontractorName, 
-				cityName, hourlyRate, specialities, employeeCount});
-		this.name = subcontractorName;
-		this.cityName = cityName;
-		this.hourlyRate = hourlyRate;
-		this.specialities = specialities;
-		this.employeeCount = employeeCount;
-		log.exiting("Subcontractor", "Subcontractor");
+			String hourlyRate, String specialities, String employeeCount, String customerId) {
+		this.setName(subcontractorName);
+		this.setCityName(cityName); 
+		this.setHourlyRate(hourlyRate);
+		this.setSpecialities(specialities);
+		this.setEmployeeCount(employeeCount);
+		this.customerId = customerId;
 	}
 
 	/**
 	 * @return the Subcontractor's name
 	 */
 	public String getName() {
-		log.entering("Subcontractor", "getSubcontractorName");
-		log.exiting("Subcontractor", "getSubcontractorName", name);
 		return name;
 	}
 
@@ -63,17 +69,16 @@ public class Subcontractor implements Serializable{
 	 * @param subcontractorName sets the Subcontractor's name
 	 */
 	public void setName(String subcontractorName) {
-		log.entering("Subcontractor", "setSubcontractorName", subcontractorName);
+		if(subcontractorName == null) {
+			throw new IllegalArgumentException("You must provide a valid Subcontractor Name " + null);
+		}
 		this.name = subcontractorName;
-		log.exiting("Subcontractor", "setSubcontractorName");
 	}
 
 	/**
 	 * @return the city name that the Subcontractor operates in
 	 */
 	public String getCityName() {
-		log.entering("Subcontractor", "getCityName");
-		log.exiting("Subcontractor", "getCityName", cityName);
 		return cityName;
 	}
 
@@ -81,17 +86,16 @@ public class Subcontractor implements Serializable{
 	 * @param cityName sets the city name that the Subcontractor operates in
 	 */
 	public void setCityName(String cityName) {
-		log.entering("Subcontractor", "setCityName", cityName);
+		if(cityName == null) {
+			throw new IllegalArgumentException("You must provide a valid City Name "+ cityName);
+		}
 		this.cityName = cityName;
-		log.exiting("Subcontractor", "setCityName");
 	}
 
 	/**
 	 * @return the hourly rate including the currency symbol
 	 */
 	public String getHourlyRate() {
-		log.entering("Subcontractor", "getHourlyRate");
-		log.exiting("Subcontractor", "getHourlyRate", hourlyRate);
 		return hourlyRate;
 	}
 
@@ -99,35 +103,33 @@ public class Subcontractor implements Serializable{
 	 * @param hourlyRate sets the hourly rate of the Subcontractor
 	 */
 	public void setHourlyRate(String hourlyRate) {
-		log.entering("Subcontractor", "setHourlyRate", hourlyRate);
+		if(hourlyRate == null) {
+			throw new IllegalArgumentException("You Must provide an hourly rate " + hourlyRate);
+		}
 		this.hourlyRate = hourlyRate;
-		log.exiting("Subcontractor", "setHourlyRate");
 	}
 
 	/**
 	 * @return a list of the specialties offered by a Subcontractor
 	 */
-	public List<String> getSpecialities() {
-		log.entering("Subcontractor", "getSpecialities");
-		log.exiting("Subcontractor", "getSpecialities", specialities);
+	public String getSpecialities() {
 		return specialities;
 	}
 
 	/**
 	 * @param specialities sets the List of specialties
 	 */
-	public void setSpecialities(List<String> specialities) {
-		log.entering("Subcontractor", "setSpecialities", specialities);
+	public void setSpecialities(String specialities) {
+		if(specialities == null || specialities.length() < 1) {
+			throw new IllegalArgumentException("No Specialites in parameters setSpecialities");
+		}
 		this.specialities = specialities;
-		log.exiting("Subcontractor", "setSpecialities");
 	}
 
 	/**
 	 * @return the number of employees currently available to the Subcontractor
 	 */
-	public int getEmployeeCount() {
-		log.entering("Subcontractor", "getEmployeeCount");
-		log.exiting("Subcontractor", "getEmployeeCount", employeeCount);
+	public String getEmployeeCount() {
 		return employeeCount;		
 	}
 
@@ -135,22 +137,23 @@ public class Subcontractor implements Serializable{
 	 * @param employeeCount sets the number of employees available to the Subcontractor. 
 	 * @throws IllegalArgumentException if the emplyee count is less than 0.
 	 */
-	public void setEmployeeCount(int employeeCount) {
-		log.entering("Subcontractor", "setEmployeeCount", employeeCount);
-		if (employeeCount < 0) {
-			log.log(Level.SEVERE, "The employee count is incorrect: "+employeeCount);
-			throw new IllegalArgumentException("Employee count cannot be less than 0");
+	public void setEmployeeCount(String employeeCount) {
+		int count = 0;
+		try {
+			count = Integer.parseInt(employeeCount);
+			if (count < 0) {
+				throw new IllegalArgumentException("Employee count cannot be less than 0");
+			}
+			this.employeeCount = employeeCount;
+		} catch (NumberFormatException nfe) {
+			throw new IllegalArgumentException("Employee count must be numeric integer of type String");
 		}
-		this.employeeCount = employeeCount;
-		log.exiting("Subcontractor", "setEmployeeCount");
 	}
 
 	/**
 	 * @return the 8-digit customer ID who currently has booked this Subcontractor
 	 */
 	public String getCustomerId() {
-		log.entering("Subcontractor", "getCustomerId");
-		log.exiting("Subcontractor", "getCustomerId", customerId);
 		return customerId;
 	}
 
@@ -159,7 +162,6 @@ public class Subcontractor implements Serializable{
 	 * @throws IllegalArgumentException if the param is less or greater than 8 digits
 	 */
 	public void setCustomerId(String customerId) throws IllegalArgumentException{
-		log.entering("Subcontractor", "setCustomerId", customerId);		
 		try {
 			Integer.parseInt(customerId);
 			
@@ -171,12 +173,16 @@ public class Subcontractor implements Serializable{
 			
 		} catch (RuntimeException nfe) {
 			String errMessage = "Customer ID must be 8 Digits. ID="+customerId;
-			log.log(Level.SEVERE, errMessage);
-			throw new IllegalArgumentException(errMessage); 
-			
-		} finally {
-			log.exiting("Subcontractor", "setCustomerId");
-		}		
+			throw new IllegalArgumentException(errMessage); 			
+		} 		
+	}
+	
+	public Integer getRecordNumber() {
+		return this.recordNumber;
+	}
+	
+	public void setRecordNumber(Integer recordNumber) {
+		this.recordNumber = recordNumber;
 	}
 	
 	/**
@@ -185,18 +191,22 @@ public class Subcontractor implements Serializable{
 	 */
 	@Override
 	public boolean equals(Object subcontractor) {
-		log.entering("Subcontractor", "equals", subcontractor);	
 		if(!(subcontractor instanceof Subcontractor)) {
 			return false;
 		}				
 		Subcontractor otherSub = (Subcontractor) subcontractor;		
 		String otherSubName = otherSub.getName();
-		String otherSubCity = otherSub.getCityName();		
-		boolean isNameEqual = (this.name == null) ? (otherSubName == null) : this.name.equals(otherSubName);
-		boolean isCityEqual = (this.cityName == null) ? (otherSubCity == null) : this.cityName.equals(otherSubCity);				
-		boolean areEqual = isNameEqual && isCityEqual;
-		log.exiting("Subcontractor", "equals", areEqual);	
+		String otherSubCity = otherSub.getCityName();	
 		
+		boolean isNameEqual = (this.name == null) 
+				? (otherSubName == null) 
+				: this.name.equals(otherSubName);
+				
+		boolean isCityEqual = (this.cityName == null) 
+				? (otherSubCity == null) 
+				: this.cityName.equals(otherSubCity);	
+				
+		boolean areEqual = isNameEqual && isCityEqual;
 		return areEqual;
 	}
 	
@@ -204,6 +214,17 @@ public class Subcontractor implements Serializable{
 	@Override
 	public int hashCode() {
 		return (this.name+this.cityName).hashCode();
+	}
+	
+	public String[] toArray() {
+		return new String[] {
+					this.name, 
+					this.cityName,
+					this.specialities, 
+					this.employeeCount, 
+					this.hourlyRate, 
+					this.customerId
+				};		
 	}
 	
 }

@@ -43,7 +43,7 @@ public interface DBMain {
 	  public void unlock(int recNo) throws RecordNotFoundException;
 
 
-	  // Determines if a record is currenly locked. Returns true if the
+	  // Determines if a record is currently locked. Returns true if the
 	  // record is locked, false otherwise.
 	  public boolean isLocked(int recNo)
 	    throws RecordNotFoundException;

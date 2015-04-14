@@ -2,7 +2,7 @@
 Log of all decisions, assumptions, reasoning behind design decisions
 ====================================================================
 
-Subcontractor.class
+Subcontractor class
 -------------------
 1.	Created a Subcontractor class to be used as a transfer object - Value Object Design Pattern
 	For ease of transferring a record or data. Also allows for how params should be set, see point below
@@ -24,8 +24,10 @@ Subcontractor.class
 	Subcontractor equality is based on two attributes: their name and location. If the a contractor of the same name
 	works in the same geographic location, we have a problem.
 	
+	Changed - Using record number as a unique key for subcontractors.
+	
 
-SubcontractorDatabase.class
+Data class
 ---------------------------
 1.	Constructor allows for setting filepath of db location. To cater for multiple locations, client server or standalone 
 	scenario. Using constructor chaining.
@@ -34,6 +36,24 @@ SubcontractorDatabase.class
 
 3. Using Facade design pattern to abstract logic from user.
 
-4.	Throwing a custom exception in the event of a FileNotFoundException or IOException. Reasoning if we switch
-	DB to non file.
+4.	Throwing a custom exception DatabaseException in the event of a FileNotFoundException or IOException. Reasoning if we switch
+	DB to non file datasource.
+	
+
+Database class 
+----------------------------
+1. Made package private to enforce using Data facade.
+
+2. Added method to retreive and populate a map of Keys for the Subcontractors and their locations in the database file.
+   Method has a boolean flag that will allow dual use of the method. True will populate the record number map (obtaining a write lock)
+   and false reading the database file and returning a list only of subcontractors in the file.
+   Using a write lock will ensure no other thread reading or updating at the same time.
+   
+3. Added a getSubcontractor method which acquires a read lock, allowing for concurrent threads to read from the Map.
+
+4. retreiveSubcontractor seek and readFully are considered atomic hence in synchronized block.
+	Do not want any other thread to update while reading from location. Using readFully to ensure that record is fully read.
+	
+5. Two Datastructures. Map to store file locations based on keys.
+	An Array List which has an index of keys.
 	
