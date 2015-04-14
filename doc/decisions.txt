@@ -10,7 +10,7 @@ Subcontractor class
 	
 2. 	List<String> chosen for specialites, list size will be unknown size.
 
-3. 	Subcontractor Constructor does not take the id of the customer as a param. Assuming that 
+3. 	Subcontractor Constructor does not take the id of the customer as a parameter. Assuming that 
 	if a Subcontractor is being created that there will be no customer to be assigned immediately.
 	
 4.	The Database Schema specifies and 8 digit number for the customer ID. It is assumed that this
@@ -18,18 +18,19 @@ Subcontractor class
 	in event that param is < or > 8 digits.	
 	
 5.	The setEmployeeCount will throw IllegalArgumentException in event there is less than 0 passed as
-	an argument. Does not make sense that an subcontractor can have negative number employees.
+	an argument. Does not make sense that an sub-contractor can have negative number employees.
 	
 6.	Since no key exists in DB and there is no unique identifier for a contractor, such as telephone number,
 	Subcontractor equality is based on two attributes: their name and location. If the a contractor of the same name
-	works in the same geographic location, we have a problem.
+	works in the same geographic location, we have a problem. These two properties used to generate a hashCode, and are used as the
+	recNo Index.
 	
-	Changed - Using record number as a unique key for subcontractors.
+	
 	
 
 Data class
 ---------------------------
-1.	Constructor allows for setting filepath of db location. To cater for multiple locations, client server or standalone 
+1.	Constructor allows for setting file path of db location. To cater for multiple locations, client server or stand alone 
 	scenario. Using constructor chaining.
 	
 2. Class is implementing our required interface.
@@ -37,23 +38,36 @@ Data class
 3. Using Facade design pattern to abstract logic from user.
 
 4.	Throwing a custom exception DatabaseException in the event of a FileNotFoundException or IOException. Reasoning if we switch
-	DB to non file datasource.
+	DB to non file data source.
 	
 
 Database class 
 ----------------------------
 1. Made package private to enforce using Data facade.
 
-2. Added method to retreive and populate a map of Keys for the Subcontractors and their locations in the database file.
+2. Added method to retrieve and populate a map of Keys for the Subcontractors and their locations in the database file.
    Method has a boolean flag that will allow dual use of the method. True will populate the record number map (obtaining a write lock)
-   and false reading the database file and returning a list only of subcontractors in the file.
+   and false reading the database file and returning a list only of sub-contractors in the file.
    Using a write lock will ensure no other thread reading or updating at the same time.
    
 3. Added a getSubcontractor method which acquires a read lock, allowing for concurrent threads to read from the Map.
 
 4. retreiveSubcontractor seek and readFully are considered atomic hence in synchronized block.
-	Do not want any other thread to update while reading from location. Using readFully to ensure that record is fully read.
+	Do not want any other thread to update while reading from location. Using readFully to ensure that record is fully read - thread not switched out 
+	mid read.
 	
-5. Two Datastructures. Map to store file locations based on keys.
-	An Array List which has an index of keys.
+5. Two Data structures. Map to store file locations based on keys.
+	An Array List which has an index of keys. Changed this to single data structure Map<Integer, Long>. Where integer is the hashCode of the Subcontractor object
+	and Long is the location of the record in the database file.
 	
+6. Created a persistSubcontractor method, dual purpose, use to update or create a new instance. Decided that there will be no cache implemented. 
+   That is, once the Map data structure is updated, the database file will be updated. This will impact on performance as the user will need to 
+   acquire a write lock on both the Map (recordLocations variable) and the database file. Any users wishing to read from the database file or from the data structure will
+   be blocked until the update/creation is complete. Sacrificing performance for simplicity.
+   
+7. Using StringBuilder to create New/Updated Record in persistSubcontractor. No internal Synchronization. Increased performance.
+	
+	
+RecordUtility class
+--------------------------------
+Created a RecordUtility class with two static inner classes for reading and writing from byte arrays

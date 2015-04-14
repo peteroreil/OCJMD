@@ -25,14 +25,14 @@ public class Database {
     private static final int NUMBER_OF_FIELDS_BYTES = 2;      
     private static final int FIELD_NAME_BYTES_LENGTH = 2;
     private static final int FIELD_LENGTH_BYTES = 2;    
-	//private static String record = new String(new byte[Subcontractor.RECORD_LENGTH]);
+	private static String recordHolder = new String(new byte[Subcontractor.TOTAL_RECORD_LENGTH]);
 	private static RandomAccessFile databaseFile = null;
 	private static ReadWriteLock recordNumbersLock = new ReentrantReadWriteLock();
 	public static Map<Integer, Long> recordLocations = new HashMap<Integer, Long>();
 
 
 	/**
-	 * @param databaseFilePath filepath to database file.
+	 * @param databaseFilePath file path to database file.
 	 * Database constructor.
 	 * Creates a new read write RandomAccess file.
 	 * Populates what list?
@@ -106,6 +106,7 @@ public class Database {
 				}
 				
 				dbOffset = databaseFile.length();
+				recordLocations.put(recordKey, dbOffset);
 				
 			} else {
 				if (isNewRecord) {
@@ -114,11 +115,39 @@ public class Database {
 				}
 			}
 			
-			//continue and update file and Map from here
-				
-			//databaseFile.seek(dbOffset);
+			final StringBuilder builder = new StringBuilder(recordHolder);
 
-
+			class RecordWriter {
+				int start = 0;
+				void write(String data, int length) {					
+					builder.replace(start, start + data.length(), data);
+					start += length;
+				}
+			}
+			
+			RecordWriter writer = new RecordWriter();
+			String validFlag = getRecordFlag(true);
+			
+			System.out.println(data[0]);
+			System.out.println(data[1]);
+			System.out.println(data[2]);
+			System.out.println(data[3]);
+			System.out.println(data[4]);
+			System.out.println(data[5]);
+			
+			writer.write(validFlag, Subcontractor.VALID_RECORD_LENGTH);
+			writer.write(data[0], Subcontractor.NAME_LENGTH);
+			writer.write(data[1], Subcontractor.LOCATION_LENGTH);
+			writer.write(data[2], Subcontractor.SPECIALITIES_LENGTH);
+			writer.write(data[3], Subcontractor.SIZE_LENGTH);
+			writer.write(data[4], Subcontractor.RATE_LENGTH);
+			writer.write(data[5], Subcontractor.OWNER_LENGTH);	
+			
+			synchronized(databaseFile) {
+				databaseFile.seek(dbOffset);
+				databaseFile.write(builder.toString().getBytes());
+			}
+			
 			
 		} catch (IOException ioe) {
 			throw new DatabaseException("Exception reading length of file");			
@@ -126,7 +155,24 @@ public class Database {
 			recordNumbersLock.writeLock().unlock();
 		}
 		
-		return 0;
+		return recordKey;
+	}
+
+	/**
+	 * returns a 0 or 1 valued string byte array
+	 * @param b
+	 */
+	private String getRecordFlag(boolean isValid) {
+		int flag = 0;
+		
+		if (! isValid) {
+			flag = 1;
+		}
+		
+		byte validFlag = (byte)flag;
+		byte[] validArray = new byte[1];
+		validArray[0] = validFlag;
+		return new String(validArray);		
 	}
 
 	/**
@@ -197,9 +243,9 @@ public class Database {
 		
 		try {
 			long offSetInFile = calculateFileOffset();
-			
+			long dbLength = databaseFile.length();
 			for (long locationInFile = offSetInFile; 
-					locationInFile < databaseFile.length();
+					locationInFile < dbLength;
 					locationInFile += Subcontractor.TOTAL_RECORD_LENGTH) {
 				
 				Subcontractor subcontractor = retrieveSubcontrator(locationInFile);
@@ -298,7 +344,7 @@ public class Database {
 			try {
 				str = new String(data, offset, length, Database.ENCODING);
 			} catch (UnsupportedEncodingException usce) {
-				throw new DatabaseException("Exception readin record: " + usce.getMessage());
+				throw new DatabaseException("Exception reading record: " + usce.getMessage());
 			}
 				offset += length;
 				return str.trim();
@@ -313,6 +359,13 @@ public class Database {
 		String size = reader.read(Subcontractor.SIZE_LENGTH);
 		String rate = reader.read(Subcontractor.RATE_LENGTH);
 		String owner = reader.read(Subcontractor.OWNER_LENGTH);
+		
+		System.out.println("\n\nName: " + name);
+		System.out.println("Location: " + location);
+		System.out.println("Specialities: " + specialities);
+		System.out.println("Size: " + size);
+		System.out.println("rate: " + rate);
+		System.out.println("owner: " + owner);
 		
 		//if record is marked as deleted return null.
 		Subcontractor subcontractor = (isValid != 0) 

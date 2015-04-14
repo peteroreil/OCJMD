@@ -10,7 +10,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import suncertify.db.Data;
@@ -82,13 +84,6 @@ public class DataTest {
 		data.create(duplicateRecord);
 	} 
 	
-	@Test
-	public void shouldReturnSubcontractors() {
-		List<Subcontractor> subs = data.getSubcontractors();
-		int actualNumSubs = subs.size();
-		int expectedNumSubs = 29;
-		assertEquals(expectedNumSubs, actualNumSubs);
-	}
 	
 	@Test 
 	public void shouldAddNewRecordToFileOnCreate() {
@@ -112,7 +107,15 @@ public class DataTest {
 		subs = data.getSubcontractors();
 		actualNumSubs = subs.size();
 		expectedNumSubs = 30;
-		assertEquals(expectedNumSubs, actualNumSubs);
+		assertEquals(expectedNumSubs, actualNumSubs);	
+		
+		int recNo = (newRecord[0] + newRecord[1]).hashCode();
+		String[] subScriber = data.read(recNo);
+		
+		for (int i = 0; i < newRecord.length; i++) {
+			assertEquals(subScriber[i], newRecord[i]);
+		}
+		
 	}
 	
 }
