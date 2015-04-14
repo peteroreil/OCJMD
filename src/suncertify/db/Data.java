@@ -1,6 +1,6 @@
 package suncertify.db;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * Data class. Facade.
@@ -70,6 +70,10 @@ public class Data implements DBMain{
 	
 	public void releaseSubcontractor(String contractor) {
 		bookingManager.releaseSubcontractor(contractor, this);
+	}
+	
+	public List<Subcontractor> getSubcontractors() {
+		return database.getSubcontractors();
 	}
 		
 }

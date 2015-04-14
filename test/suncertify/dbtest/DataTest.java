@@ -8,16 +8,15 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.List;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import suncertify.db.Data;
 import suncertify.db.DuplicateKeyException;
 import suncertify.db.RecordNotFoundException;
+import suncertify.db.Subcontractor;
 import static java.nio.file.StandardCopyOption.*;
 
 /**
@@ -40,31 +39,17 @@ public class DataTest {
 	}
 	
 	@Test
+	(expected = RecordNotFoundException.class)
 	public void shouldNotThrowIndexOutOfBoundsException() {
 		data.read(1);
-		data.read(29);
-	}
-	
-	@Test
-	(expected = RecordNotFoundException.class)
-	public void shouldThrowRecordNotFoundIfIndexOutOfBoundsLower() {
-		data.read(0);
-	}
-	
-	@Test
-	(expected = RecordNotFoundException.class)
-	public void shouldThrowRecordNotFoundIfIndexOutOfBoundsUpper() {
-		data.read(30);
-	}
-	
-	@Test
-	public void shouldReturnNonNullOnRead() {
-		assertNotNull(data.read(1));
 	}
 	
 	@Test
 	public void shouldReturnCorrectEntryOnReadFirstRecord() {
-		String[] record = data.read(1);
+		String subName = "Buonarotti & Company";
+		String subCity = "Smallville";
+		int key = (subName + subCity).hashCode();
+		String[] record = data.read(key);
 		assertEquals("Buonarotti & Company", record[0]);
 		assertEquals("Smallville", record[1]);
 		assertEquals("Air Conditioning, Painting, Painting", record[2]);
@@ -75,7 +60,11 @@ public class DataTest {
 	
 	@Test
 	public void shouldReturnCorrectEntryOnReadLastEntry() {
-		String[] record = data.read(29);
+		String subName = "Moore Power Tool Ya";
+		String subCity = "Lendmarch";
+		int key = (subName + subCity).hashCode();
+		
+		String[] record = data.read(key);
 		assertEquals("Moore Power Tool Ya", record[0]);
 		assertEquals("Lendmarch", record[1]);
 		assertEquals("Electrical, Heating, Glass", record[2]);
@@ -93,8 +82,21 @@ public class DataTest {
 		data.create(duplicateRecord);
 	} 
 	
+	@Test
+	public void shouldReturnSubcontractors() {
+		List<Subcontractor> subs = data.getSubcontractors();
+		int actualNumSubs = subs.size();
+		int expectedNumSubs = 29;
+		assertEquals(expectedNumSubs, actualNumSubs);
+	}
+	
 	@Test 
 	public void shouldAddNewRecordToFileOnCreate() {
+		
+		List<Subcontractor> subs = data.getSubcontractors();
+		int actualNumSubs = subs.size();
+		int expectedNumSubs = 29;
+		assertEquals(expectedNumSubs, actualNumSubs);
 		
 		String[] newRecord = {
 				"test company",
@@ -106,6 +108,11 @@ public class DataTest {
 		};
 		
 		data.create(newRecord);
+		
+		subs = data.getSubcontractors();
+		actualNumSubs = subs.size();
+		expectedNumSubs = 30;
+		assertEquals(expectedNumSubs, actualNumSubs);
 	}
-
+	
 }

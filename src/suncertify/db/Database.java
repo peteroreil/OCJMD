@@ -28,8 +28,7 @@ public class Database {
 	//private static String record = new String(new byte[Subcontractor.RECORD_LENGTH]);
 	private static RandomAccessFile databaseFile = null;
 	private static ReadWriteLock recordNumbersLock = new ReentrantReadWriteLock();
-	public static List<String> recordKeys = new ArrayList<String>();
-	public static Map<String, Long> recordLocations = new HashMap<String, Long>();
+	public static Map<Integer, Long> recordLocations = new HashMap<Integer, Long>();
 
 
 	/**
@@ -57,14 +56,13 @@ public class Database {
 	 * @throws RecordNotFoundException
 	 */
 	public String[] read(int recNo) {
-		int index = recNo - 1;
 		Long recordLocation = null;
 		
-		try {
-			recordLocation = this.getSubcontractor(index);			
-		} catch (IndexOutOfBoundsException e){
-			throw new RecordNotFoundException("record not found at index: " + 
-					index + "\n" + e.getMessage());
+		recordLocation = this.getSubcontractor(recNo);			
+
+		if (recordLocation == null) {
+			throw new RecordNotFoundException("Record at index " + 
+					recNo + " not found.");
 		}
 		
 		Subcontractor subcontractor = this.retrieveSubcontrator(recordLocation);
@@ -82,51 +80,53 @@ public class Database {
 	 */
 	public int create(String[] data) {
 		validateData(data);
-		return persistSubcontractor(data);
+		return persistSubcontractor(data, true);
 	}
 
 	/**
+	 * Creates or Updates a record
+	 * True creates
+	 * False updates
 	 * @param data
-	 * @return
+	 * @return int
 	 */
-	private int persistSubcontractor(String[] data) {
-		String newRecordKey = data[0] + data[1];
+	private int persistSubcontractor(String[] data, boolean createNewRecord) {
+		int recordKey = (data[0] + data[1]).hashCode();
 		
 		recordNumbersLock.writeLock().lock();
 		
-		try {			
-			for (String keys : recordKeys) {
-				if (keys.equals(newRecordKey)) {
-					throw new DuplicateKeyException("Key " + newRecordKey +
-							"already exists");
+		try {	
+			Long dbOffset = recordLocations.get(recordKey);
+			boolean isNewRecord = (dbOffset == null);
+			
+			if (createNewRecord) {	
+				if (!isNewRecord) {
+					throw new DuplicateKeyException("Key " + recordKey +
+					"already exists");	
+				}
+				
+				dbOffset = databaseFile.length();
+				
+			} else {
+				if (isNewRecord) {
+					throw new RecordNotFoundException("No record found. Key: " +
+							recordKey);
 				}
 			}
 			
-			String lastRecordAddedKey = recordKeys.get(recordKeys.size()-1);
-			recordKeys.add(newRecordKey);
-			Long lastRecordAddedOffset = recordLocations.get(lastRecordAddedKey);
-			Long newRecordOffset = lastRecordAddedOffset + Subcontractor.TOTAL_RECORD_LENGTH;
-			recordLocations.put(newRecordKey, newRecordOffset);
-			
-			// now update the database file
+			//continue and update file and Map from here
+				
+			//databaseFile.seek(dbOffset);
+
 
 			
+		} catch (IOException ioe) {
+			throw new DatabaseException("Exception reading length of file");			
 		} finally {
 			recordNumbersLock.writeLock().unlock();
 		}
 		
 		return 0;
-	}
-
-	/**
-	 * @param data
-	 */
-	private void validateData(String[] data) {
-		if (data.length < (new Subcontractor()).toArray().length) {
-			throw new DatabaseException("Insufficient fields passed: " + 
-					Arrays.asList(data).toString());
-		}
-		
 	}
 
 	/**
@@ -180,6 +180,7 @@ public class Database {
 		return false;
 	}
 
+	
 	/**
 	 * @return list of subcontractors from database file
 	 * @param boolean isWriteLocked
@@ -187,7 +188,7 @@ public class Database {
 	 * if is writeLocked is true will obtain a write lock on the record
 	 * numbers map and populate/update it.
 	 */
-	public List<Subcontractor> getSubcontractors(boolean isWriteLocked) {
+	private List<Subcontractor> getSubcontractors(boolean isWriteLocked) {
 		List<Subcontractor> subcontractors = new ArrayList<Subcontractor>();
 		
 		if(isWriteLocked) {
@@ -202,13 +203,11 @@ public class Database {
 					locationInFile += Subcontractor.TOTAL_RECORD_LENGTH) {
 				
 				Subcontractor subcontractor = retrieveSubcontrator(locationInFile);
-
+				
 				if (subcontractor != null) {
+					subcontractors.add(subcontractor);
 					if (isWriteLocked) {
-						String name = subcontractor.getName();
-						String location = subcontractor.getCityName();
-						String key = name + location;
-						recordKeys.add(key);
+						int key = subcontractor.hashCode();
 						recordLocations.put(key, locationInFile);
 					}
 				}
@@ -222,6 +221,10 @@ public class Database {
 		}
 		
 		return subcontractors;
+	}
+	
+	public List<Subcontractor> getSubcontractors() {
+		return getSubcontractors(false);
 	}
 	
 	/**
@@ -259,11 +262,10 @@ public class Database {
 	 * e.g. String key = subcontractor.name + subcontractor.cityName
 	 *  
 	 */
-	public Long getSubcontractor(int recordNumber) {
+	private Long getSubcontractor(int recordNumber) {
 		recordNumbersLock.readLock().lock();
 		try {
-			String recordKey = recordKeys.get(recordNumber);
-			Long locationInFile = recordLocations.get(recordKey);
+			Long locationInFile = recordLocations.get(recordNumber);
 			return locationInFile;
 		} finally {
 			recordNumbersLock.readLock().unlock();
@@ -321,8 +323,10 @@ public class Database {
 		return subcontractor;
 	}
 	
-	
-    private static int getValue(final byte [] byteArray) {
+	/**
+	 * @param byteArray
+	 */
+    private int getValue(final byte [] byteArray) {
         int value = 0;
         final int byteArrayLength = byteArray.length;
  
@@ -333,5 +337,15 @@ public class Database {
  
         return value;
     }
+    
+	/**
+	 * @param data
+	 */
+	private void validateData(String[] data) {
+		if (data.length < (new Subcontractor()).toArray().length) {
+			throw new DatabaseException("Insufficient fields passed: " + 
+					Arrays.asList(data).toString());
+		}		
+	}
 
 }
