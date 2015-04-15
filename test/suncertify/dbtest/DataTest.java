@@ -88,11 +88,6 @@ public class DataTest {
 	@Test 
 	public void shouldAddNewRecordToFileOnCreate() {
 		
-		List<Subcontractor> subs = data.getSubcontractors();
-		int actualNumSubs = subs.size();
-		int expectedNumSubs = 29;
-		assertEquals(expectedNumSubs, actualNumSubs);
-		
 		String[] newRecord = {
 				"test company",
 				"test city",
@@ -102,20 +97,60 @@ public class DataTest {
 				""
 		};
 		
-		data.create(newRecord);
-		
+		List<Subcontractor> subs = data.getSubcontractors();
+		int actualNumSubs = subs.size();
+		int recNo = data.create(newRecord);
 		subs = data.getSubcontractors();
+		int expectedNumSubs = actualNumSubs + 1;
 		actualNumSubs = subs.size();
-		expectedNumSubs = 30;
-		assertEquals(expectedNumSubs, actualNumSubs);	
+		assertEquals(expectedNumSubs, actualNumSubs);
 		
-		int recNo = (newRecord[0] + newRecord[1]).hashCode();
 		String[] subScriber = data.read(recNo);
-		
 		for (int i = 0; i < newRecord.length; i++) {
 			assertEquals(subScriber[i], newRecord[i]);
 		}
-		
 	}
 	
+	
+	@Test
+	(expected = RecordNotFoundException.class)
+	public void shouldUpdateExistingRecord() {
+		
+		String[] existingRecord = {
+				"test company 2",
+				"test city 2",
+				"test service 2",
+				"12",
+				"$20.00",
+				""
+		};
+		
+		//assert read and create took place
+		int recNo = data.create(existingRecord);		
+		String[] record = data.read(recNo);		
+		assertEquals(record[0], existingRecord[0]);
+		
+		List<Subcontractor> subs = data.getSubcontractors();
+		int numSubsBefore = subs.size();
+		
+		String[] updatedRecord = existingRecord;
+		updatedRecord[0] = "updated company";
+		updatedRecord[1] = "updated location";
+		
+		data.update(recNo, updatedRecord);
+		
+		subs = data.getSubcontractors();
+		int numSubsAfter = subs.size();
+		
+		//assert count of sub-contractors before and after update
+		assertEquals(numSubsBefore, numSubsAfter);
+		
+		//read new record verify there.
+		data.read((updatedRecord[0] + updatedRecord[1]).hashCode());
+		
+		//read old record number - should throw RecordNotFoundException
+		data.read(recNo);
+	}
+	
+
 }

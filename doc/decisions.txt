@@ -56,17 +56,29 @@ Database class
 	Do not want any other thread to update while reading from location. Using readFully to ensure that record is fully read - thread not switched out 
 	mid read.
 	
-5. Two Data structures. Map to store file locations based on keys.
-	An Array List which has an index of keys. Changed this to single data structure Map<Integer, Long>. Where integer is the hashCode of the Subcontractor object
+5. Single data structure Map<Integer, Long>. Where integer is the hashCode of the Subcontractor object
 	and Long is the location of the record in the database file.
 	
-6. Created a persistSubcontractor method, dual purpose, use to update or create a new instance. Decided that there will be no cache implemented. 
+6. persistSubcontractor method, dual purpose, use to update or create a new instance. Decided that there will be no cache implemented. 
    That is, once the Map data structure is updated, the database file will be updated. This will impact on performance as the user will need to 
    acquire a write lock on both the Map (recordLocations variable) and the database file. Any users wishing to read from the database file or from the data structure will
    be blocked until the update/creation is complete. Sacrificing performance for simplicity.
    
-7. Using StringBuilder to create New/Updated Record in persistSubcontractor. No internal Synchronization. Increased performance.
+8. Using StringBuilder to create New/Updated Record in persistSubcontractor. No internal Synchronization. Increased performance.
 	
+9. Due to having to create a recNo based on attributes of the object, Have to make a decision on whether 
+	i) those attributes can never change
+	ii) the index will have to change if those attributes change.
+
+   Have implemented ii) if there is an update of the name or location (or both) of the sub-contractor. The Map is then updated 
+   to remove the existing hashCode of the object thus if a user updates a record there is no guarantee that the recNo reference 
+   that was updated will still be valid after the update. Because the recordNumber can be easily obtained from the data itself,
+   have chosen this approach. 
+
+
+
+
+ 
 	
 RecordUtility class
 --------------------------------

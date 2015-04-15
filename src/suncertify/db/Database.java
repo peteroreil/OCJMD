@@ -32,10 +32,8 @@ public class Database {
 
 
 	/**
-	 * @param databaseFilePath file path to database file.
-	 * Database constructor.
-	 * Creates a new read write RandomAccess file.
-	 * Populates what list?
+	 * @param String databaseFilePath absolute path to database file.
+	 * @throws DatabaseException
 	 */
 	public Database(String databaseFilePath) {
 		if (databaseFile == null) {
@@ -52,7 +50,7 @@ public class Database {
 
 	/**
 	 * @param recNo
-	 * @return String array of data read from database file.
+	 * @return String array record read from database file
 	 * @throws RecordNotFoundException
 	 */
 	public String[] read(int recNo) {
@@ -74,24 +72,56 @@ public class Database {
 	}
 	
 	/**
-	 * @param data
-	 * @return
+	 * <p>
+	 * Writes a new record to databases.
+	 * Requires a String[] of length 6 exactly. 
+	 * <p>
+	 * @param data		the new record to create
+	 * @return the newly created record, record number
 	 * @throws DuplicateKeyException
+	 * @throws IllegalArgumentException
 	 */
 	public int create(String[] data) {
 		validateData(data);
-		return persistSubcontractor(data, true);
+		return persistSubcontractor(data, null);
+	}
+	
+	/**
+	 * Updates an existing record. Requires a String[] of length
+	 * 6 exactly.
+	 * <p>
+	 * <b>In event of an update of data[0] and/or data[1] the used recNo
+	 * reference will no longer reference the updated record. A new recNo will have
+	 * to be calculated after the update method is called</b>
+	 * </p>
+	 * 
+	 * @param recNo 	the record number to update
+	 * @param data 		the updated String data array
+	 * @throws RecordNotFoundException
+	 * @throws IllegalArgumentException
+	 */
+	public void update(int recNo, String[] data) {
+		validateData(data);		
+		persistSubcontractor(data, recNo);
 	}
 
 	/**
-	 * Creates or Updates a record
-	 * True creates
-	 * False updates
-	 * @param data
-	 * @return int
+	 * Creates or updates a record to the database file.
+	 * If an update an Integer recordNumber is required,
+	 * if recordNumber is null it is considered a create. 
+	 * 
+	 * @param String[] data Sub-contractor Data
+	 * @param Integer recordNumber Record to update or null
+	 * @return the integer index of newly created/updated record
+	 * @throws DuplicateKeyException
+	 * @throws RecordNotFoundException
 	 */
-	private int persistSubcontractor(String[] data, boolean createNewRecord) {
-		int recordKey = (data[0] + data[1]).hashCode();
+	private int persistSubcontractor(String[] data, Integer recordNumber) {
+		boolean createNewRecord = (recordNumber == null);
+		
+		int recordKey = (recordNumber == null) ?
+				(data[0] + data[1]).hashCode()
+				: recordNumber;
 		
 		recordNumbersLock.writeLock().lock();
 		
@@ -104,7 +134,7 @@ public class Database {
 					throw new DuplicateKeyException("Key " + recordKey +
 					"already exists");	
 				}
-				
+				//create a new record location
 				dbOffset = databaseFile.length();
 				recordLocations.put(recordKey, dbOffset);
 				
@@ -113,6 +143,10 @@ public class Database {
 					throw new RecordNotFoundException("No record found. Key: " +
 							recordKey);
 				}
+				//update record location key in case of name or location change
+				recordLocations.remove(recordKey);
+				int newKey = (data[0] + data[1]).hashCode();
+				recordLocations.put(newKey, dbOffset);				
 			}
 			
 			final StringBuilder builder = new StringBuilder(recordHolder);
@@ -127,13 +161,6 @@ public class Database {
 			
 			RecordWriter writer = new RecordWriter();
 			String validFlag = getRecordFlag(true);
-			
-			System.out.println(data[0]);
-			System.out.println(data[1]);
-			System.out.println(data[2]);
-			System.out.println(data[3]);
-			System.out.println(data[4]);
-			System.out.println(data[5]);
 			
 			writer.write(validFlag, Subcontractor.VALID_RECORD_LENGTH);
 			writer.write(data[0], Subcontractor.NAME_LENGTH);
@@ -173,15 +200,6 @@ public class Database {
 		byte[] validArray = new byte[1];
 		validArray[0] = validFlag;
 		return new String(validArray);		
-	}
-
-	/**
-	 * @param recNo
-	 * @param data
-	 */
-	public void update(int recNo, String[] data) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	/**
@@ -275,7 +293,7 @@ public class Database {
 	
 	/**
 	 * @return long the length in bytes from zero to where 
-	 * the first subcontractor record exists in the db file.
+	 * the first sub-contractor record exists in the database file.
 	 */
 	private long calculateFileOffset() {
 		long offset = Database.MAGIC_COOKIE_BYTES + 
@@ -321,7 +339,7 @@ public class Database {
 	/**
 	 * @param locationInFile
 	 * @return Subcontractor
-	 * @throws UnsupportedEncodingException 
+	 * @throws DatabaseException 
 	 */
 	private Subcontractor retrieveSubcontrator(long locationInFile) {
 		final byte[] isValidArray = new byte[Subcontractor.VALID_RECORD_LENGTH];
@@ -360,13 +378,6 @@ public class Database {
 		String rate = reader.read(Subcontractor.RATE_LENGTH);
 		String owner = reader.read(Subcontractor.OWNER_LENGTH);
 		
-		System.out.println("\n\nName: " + name);
-		System.out.println("Location: " + location);
-		System.out.println("Specialities: " + specialities);
-		System.out.println("Size: " + size);
-		System.out.println("rate: " + rate);
-		System.out.println("owner: " + owner);
-		
 		//if record is marked as deleted return null.
 		Subcontractor subcontractor = (isValid != 0) 
 				? null 
@@ -376,9 +387,6 @@ public class Database {
 		return subcontractor;
 	}
 	
-	/**
-	 * @param byteArray
-	 */
     private int getValue(final byte [] byteArray) {
         int value = 0;
         final int byteArrayLength = byteArray.length;
@@ -391,10 +399,11 @@ public class Database {
         return value;
     }
     
-	/**
-	 * @param data
-	 */
 	private void validateData(String[] data) {
+		if (data == null) {
+			throw new IllegalArgumentException("String[] data cannot be null");
+		}
+		
 		if (data.length < (new Subcontractor()).toArray().length) {
 			throw new DatabaseException("Insufficient fields passed: " + 
 					Arrays.asList(data).toString());
