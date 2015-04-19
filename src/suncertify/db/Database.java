@@ -83,7 +83,7 @@ public class Database {
 	 */
 	public int create(String[] data) {
 		validateData(data);
-		return persistSubcontractor(data, null);
+		return persistSubcontractor(data, null, true);
 	}
 	
 	/**
@@ -102,21 +102,59 @@ public class Database {
 	 */
 	public void update(int recNo, String[] data) {
 		validateData(data);		
-		persistSubcontractor(data, recNo);
+		persistSubcontractor(data, recNo, true);
+	}
+	
+	/**
+	 * @param recNo
+	 * @throws RecordNotFoundException
+	 */
+	public void delete(int recNo) {
+		persistSubcontractor(null, recNo, false);		
+	}
+	
+	/**
+	 * @param criteria
+	 * @return
+	 */
+	public int[] find(String[] criteria) {
+		try {
+			validateData(criteria);
+		} catch (IllegalArgumentException | DatabaseException e) {
+			return new int[]{};
+		}
+		
+		List<Integer> matchingKeys = new ArrayList<Integer>();
+		
+		
+		for (Subcontractor subcontractor : getSubcontractors()) {
+			if (subcontractor.matches(criteria)) {
+				matchingKeys.add(subcontractor.hashCode());
+			}
+		}
+		
+		int[] results = new int[matchingKeys.size()];
+		
+		for (int index = 0; index < matchingKeys.size(); index++) {
+			results[index] = matchingKeys.get(index);
+		}		
+		
+		return results;
 	}
 
 	/**
-	 * Creates or updates a record to the database file.
+	 * Persists a record to the database file.
 	 * If an update an Integer recordNumber is required,
 	 * if recordNumber is null it is considered a create. 
 	 * 
-	 * @param String[] data Sub-contractor Data
-	 * @param Integer recordNumber Record to update or null
+	 * @param data Sub-contractor Data
+	 * @param recordNumber Record to update or null
+	 * @param isValidRecord
 	 * @return the integer index of newly created/updated record
 	 * @throws DuplicateKeyException
 	 * @throws RecordNotFoundException
 	 */
-	private int persistSubcontractor(String[] data, Integer recordNumber) {
+	private int persistSubcontractor(String[] data, Integer recordNumber, boolean isValidRecord) {
 		boolean createNewRecord = (recordNumber == null);
 		
 		int recordKey = (recordNumber == null) ?
@@ -143,36 +181,53 @@ public class Database {
 					throw new RecordNotFoundException("No record found. Key: " +
 							recordKey);
 				}
-				//update record location key in case of name or location change
-				recordLocations.remove(recordKey);
-				int newKey = (data[0] + data[1]).hashCode();
-				recordLocations.put(newKey, dbOffset);				
+				
+				//verify composite key fields not updated
+				if (isValidRecord) {
+					int newKey = (data[0] + data[1]).hashCode();
+					
+					if(newKey != recordKey) {
+						throw new DatabaseException("You cannont update Contractor Name "
+								+ "and/or Location Field");
+					}
+
+				} else {
+					// if record is marked for deletion
+					recordLocations.remove(recordKey);
+				}
+				
+
 			}
 			
 			final StringBuilder builder = new StringBuilder(recordHolder);
-
+			
 			class RecordWriter {
 				int start = 0;
 				void write(String data, int length) {					
 					builder.replace(start, start + data.length(), data);
 					start += length;
 				}
+			}				
+			
+			if (isValidRecord) {				
+				RecordWriter writer = new RecordWriter();
+				String validFlag = getValidRecordFlag(true);
+				writer.write(validFlag, Subcontractor.VALID_RECORD_LENGTH);
+				writer.write(data[0], Subcontractor.NAME_LENGTH);
+				writer.write(data[1], Subcontractor.LOCATION_LENGTH);
+				writer.write(data[2], Subcontractor.SPECIALITIES_LENGTH);
+				writer.write(data[3], Subcontractor.SIZE_LENGTH);
+				writer.write(data[4], Subcontractor.RATE_LENGTH);
+				writer.write(data[5], Subcontractor.OWNER_LENGTH);	
 			}
-			
-			RecordWriter writer = new RecordWriter();
-			String validFlag = getRecordFlag(true);
-			
-			writer.write(validFlag, Subcontractor.VALID_RECORD_LENGTH);
-			writer.write(data[0], Subcontractor.NAME_LENGTH);
-			writer.write(data[1], Subcontractor.LOCATION_LENGTH);
-			writer.write(data[2], Subcontractor.SPECIALITIES_LENGTH);
-			writer.write(data[3], Subcontractor.SIZE_LENGTH);
-			writer.write(data[4], Subcontractor.RATE_LENGTH);
-			writer.write(data[5], Subcontractor.OWNER_LENGTH);	
 			
 			synchronized(databaseFile) {
 				databaseFile.seek(dbOffset);
-				databaseFile.write(builder.toString().getBytes());
+				if (isValidRecord) {
+					databaseFile.write(builder.toString().getBytes());
+				} else {
+					databaseFile.write(getValidRecordFlag(false).getBytes());
+				}
 			}
 			
 			
@@ -189,7 +244,7 @@ public class Database {
 	 * returns a 0 or 1 valued string byte array
 	 * @param b
 	 */
-	private String getRecordFlag(boolean isValid) {
+	private String getValidRecordFlag(boolean isValid) {
 		int flag = 0;
 		
 		if (! isValid) {
@@ -201,49 +256,6 @@ public class Database {
 		validArray[0] = validFlag;
 		return new String(validArray);		
 	}
-
-	/**
-	 * @param recNo
-	 */
-	public void delete(int recNo) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	/**
-	 * @param criteria
-	 * @return
-	 */
-	public int[] find(String[] criteria) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
-	/**
-	 * @param recNo
-	 */
-	public void lock(int recNo) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	/**
-	 * @param recNo
-	 */
-	public void unlock(int recNo) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	/**
-	 * @param recNo
-	 * @return
-	 */
-	public boolean isLocked(int recNo) {
-		return false;
-	}
-
 	
 	/**
 	 * @return list of subcontractors from database file

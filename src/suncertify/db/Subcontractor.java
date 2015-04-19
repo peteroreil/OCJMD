@@ -57,6 +57,8 @@ public class Subcontractor implements Serializable{
 		this.setEmployeeCount(employeeCount);
 		this.customerId = customerId;
 	}
+	
+	
 
 	/**
 	 * @return the Subcontractor's name
@@ -225,6 +227,37 @@ public class Subcontractor implements Serializable{
 					this.hourlyRate, 
 					this.customerId
 				};		
+	}
+
+	/**
+	 * @param criteria
+	 * @return
+	 */
+	public boolean matches(String[] criteria) {
+		String[] thisAsArray = this.toArray();
+		
+		for (int index = 0; index < criteria.length; index++) {	
+			
+			boolean fieldIsNull = (criteria[index] == null);
+			
+			if (fieldIsNull) {
+				return true;
+			}
+			
+			boolean isEmptyString = (criteria[index].equals(""));			
+			boolean criteriaMatches = (thisAsArray[index].contains(criteria[index]));
+
+
+			if (isEmptyString) {
+				continue;				
+			}
+			
+			if (criteriaMatches) {
+				return true;
+			}
+
+		}
+		return false;
 	}
 	
 }

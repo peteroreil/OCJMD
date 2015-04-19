@@ -8,11 +8,10 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.List;
 
-import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import suncertify.db.Data;
@@ -38,6 +37,18 @@ public class DataTest {
 		targetFile = new File(System.getProperty("user.dir") + File.separator + "testdb" + File.separator + "db-2x1.db");
 		Files.copy(sourceFile.toPath(), targetFile.toPath(), REPLACE_EXISTING);		
 		data = new Data(testDB);
+	}
+	
+	private int getContractorsSize(boolean print) {
+		
+		List<Subcontractor> subs = data.getSubcontractors();
+		if (print) {
+			System.out.println("\n\n\nPRINTING SUBS: "+subs.size());
+			for (Subcontractor sub : subs) {
+				System.out.println(Arrays.asList(sub.toArray()).toString());
+			}			
+		}
+		return subs.size();
 	}
 	
 	@Test
@@ -95,16 +106,16 @@ public class DataTest {
 				"1",
 				"$20.00",
 				""
-		};
+		};		
 		
-		List<Subcontractor> subs = data.getSubcontractors();
-		int actualNumSubs = subs.size();
-		int recNo = data.create(newRecord);
-		subs = data.getSubcontractors();
-		int expectedNumSubs = actualNumSubs + 1;
-		actualNumSubs = subs.size();
+		int subCount = getContractorsSize(false);
+		int expectedNumSubs = subCount + 1;		
+		int recNo = data.create(newRecord);		
+		int actualNumSubs = getContractorsSize(false);
+		
 		assertEquals(expectedNumSubs, actualNumSubs);
 		
+		//assert all values of records are equal
 		String[] subScriber = data.read(recNo);
 		for (int i = 0; i < newRecord.length; i++) {
 			assertEquals(subScriber[i], newRecord[i]);
@@ -113,7 +124,6 @@ public class DataTest {
 	
 	
 	@Test
-	(expected = RecordNotFoundException.class)
 	public void shouldUpdateExistingRecord() {
 		
 		String[] existingRecord = {
@@ -129,28 +139,177 @@ public class DataTest {
 		int recNo = data.create(existingRecord);		
 		String[] record = data.read(recNo);		
 		assertEquals(record[0], existingRecord[0]);
-		
-		List<Subcontractor> subs = data.getSubcontractors();
-		int numSubsBefore = subs.size();
+
+		int recCountBeforeUpdate = getContractorsSize(false);
 		
 		String[] updatedRecord = existingRecord;
-		updatedRecord[0] = "updated company";
-		updatedRecord[1] = "updated location";
+		updatedRecord[2] = "updated service";
 		
 		data.update(recNo, updatedRecord);
 		
-		subs = data.getSubcontractors();
-		int numSubsAfter = subs.size();
+		int recCountAfterUpdate = getContractorsSize(false);
 		
 		//assert count of sub-contractors before and after update
-		assertEquals(numSubsBefore, numSubsAfter);
+		assertEquals(recCountBeforeUpdate, recCountAfterUpdate);
 		
 		//read new record verify there.
 		data.read((updatedRecord[0] + updatedRecord[1]).hashCode());
-		
-		//read old record number - should throw RecordNotFoundException
+		String[] newRead = data.read(recNo);
+		assertTrue(Arrays.equals(newRead, updatedRecord));
+	}
+	
+	@Test
+	(expected = RecordNotFoundException.class)
+	public void shouldDeleteExistingRecord() {
+		String[] record = {
+				"test company delete",
+				"test city delete",
+				"test service delete",
+				"12",
+				"$20.00",
+				""
+		};
+		int countBeforeCreate = getContractorsSize(false);		
+		int recNo = data.create(record);
+		String[] persistedRecord = data.read((record[0]+record[1]).hashCode());
+		assertEquals(record[4], persistedRecord[4]);		
+		int countAfterCreate = getContractorsSize(false);
+		assertNotEquals(countBeforeCreate, countAfterCreate);
+		data.delete(recNo);
+		int countAfterDelete = getContractorsSize(false);
+		assertEquals(countBeforeCreate, countAfterDelete);
 		data.read(recNo);
 	}
 	
+	@Test
+	public void shouldMatchPattern() {		
+		String[] patternRecord = {
+				"test company pattern",
+				"test city pattern",
+				"test service pattern",
+				"12",
+				"$20.00",
+				""
+		};
+		data.create(patternRecord);
+		int[] results = data.find(new String[]{"pattern"});
+		assertNotNull(results);
+	}
+	
+
+	@Test
+	public void shouldReturnEmptyResultIfIncorrectParameters() {
+		int[] results = data.find(null);
+		assertNotNull(results);		
+	}
+	
+	@Test
+	public void shouldReturnEmptyResultIfInsufficientFields() {		
+		String[] patternRecord = {
+				"test company pattern",
+				"test city pattern",
+				"test service pattern",
+				"12",
+				""
+		};
+
+		int[] results = data.find(patternRecord);
+		assertNotNull(results);
+	}
+	
+	@Test
+	public void shouldReturnRecordWhenPassedSingleMatchingField() {
+		String uniqueField = "auniquefield";
+		String[] patternRecord = {
+				"test company pattern test two",
+				"test city pattern test two",
+				uniqueField,
+				"12",
+				"$20.00",
+				""
+		};
+		int record = data.create(patternRecord);
+
+		int[] results = data.find(new String[]{"","",uniqueField,"","", ""});
+		assertEquals(1, results.length);
+		assertTrue(Arrays.equals(data.read(results[0]), data.read(record)));
+	}
+	
+	@Test
+	public void shouldReturnAllResultsIfFieldCriteriaIsNull() {
+		int[] results = data.find(new String[]{"","","","","", null});
+		int countractorCount = getContractorsSize(false);
+		assertEquals(countractorCount, results.length);
+	}
+	
+	@Test
+	public void shouldReturnNoneIfNoStringsPassed() {
+		int[] results = data.find(new String[]{"", "", "", "", "", ""});
+		int expected = 0;
+		int actual = results.length;
+		assertEquals(expected, actual);
+	}
+	
+	@Test
+	public void secondDatabase() {
+		int count = getContractorsSize(false);
+		Data data2 = new Data();
+		
+		String[] patternRecord = {
+				"test company pattern data 2",
+				"test city pattern data 2",
+				"test service pattern",
+				"12",
+				"",
+				""
+		};
+		data2.create(patternRecord);
+		int countAfter = getContractorsSize(false);
+		assertEquals(count + 1, countAfter);
+	}
+	
+	@Test
+	public void testThreadsLocking() throws InterruptedException {
+		
+		class Competitor extends Thread {
+			private Data data;
+			private int recNo;
+			private String[] recordArray;
+			
+			public Competitor(Data data, int recNo, String[] recordArray) {
+				this.data = data;
+				this.recNo = recNo;
+				this.recordArray = recordArray;
+			}
+			
+			@Override
+			public void run() {
+				this.data.lock(this.recNo);
+				this.data.update(this.recNo, this.recordArray);
+				this.data.unlock(recNo);
+			}
+		}
+		
+		int recKey = ("Philharmonic Remodeling"+"Hobbiton").hashCode();
+		
+		String [] testArray = new String[]{"Philharmonic Remodeling", 
+				"Hobbiton", "test", "1", "test", "test"};
+		
+		String[] competitorThreadRecord = new String[]{"Philharmonic Remodeling", 
+				"Hobbiton", "competitor", "2", "comp", "comp"};
+		
+		Data data2 = new Data();		
+		Competitor competitor = new Competitor(data2, recKey, competitorThreadRecord);
+		
+		
+		data.lock(recKey);
+		competitor.start();
+		Thread.sleep(3000);
+		data.update(recKey, testArray);
+		data.unlock(recKey);
+		competitor.join();
+		String[] arr = data.read(recKey);
+		assertTrue(Arrays.equals(arr, competitorThreadRecord));		
+	}
 
 }

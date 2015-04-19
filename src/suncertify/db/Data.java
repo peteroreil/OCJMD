@@ -14,7 +14,7 @@ import java.util.List;
 public class Data implements DBMain{
 
 	private Database database = null;
-	private BookingManager bookingManager = null;
+	private LockManager lockManager = null;
 	
 	public Data() throws DatabaseException {
 		this(System.getProperty("user.dir"));
@@ -22,6 +22,7 @@ public class Data implements DBMain{
 	
 	public Data(String databaseFilePath) throws DatabaseException {
 		this.database = new Database(databaseFilePath);
+		this.lockManager = new LockManager();
 	}
 	
 	@Override
@@ -51,25 +52,17 @@ public class Data implements DBMain{
 
 	@Override
 	public void lock(int recNo) throws RecordNotFoundException {
-		database.lock(recNo);
+		lockManager.lock(recNo, this);
 	}
 
 	@Override
 	public void unlock(int recNo) throws RecordNotFoundException {
-		database.unlock(recNo);
+		lockManager.unlock(recNo, this);
 	}
 
 	@Override
 	public boolean isLocked(int recNo) throws RecordNotFoundException {
-		return database.isLocked(recNo);
-	}
-	
-	public boolean reserveSubcontractor(String contractor) {
-		return bookingManager.reserveSubcontractor(contractor, this);
-	}
-	
-	public void releaseSubcontractor(String contractor) {
-		bookingManager.releaseSubcontractor(contractor, this);
+		return lockManager.isLocked(recNo);
 	}
 	
 	public List<Subcontractor> getSubcontractors() {

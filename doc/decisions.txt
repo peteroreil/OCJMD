@@ -70,13 +70,15 @@ Database class
 	i) those attributes can never change
 	ii) the index will have to change if those attributes change.
 
-   Have implemented ii) if there is an update of the name or location (or both) of the sub-contractor. The Map is then updated 
-   to remove the existing hashCode of the object thus if a user updates a record there is no guarantee that the recNo reference 
-   that was updated will still be valid after the update. Because the recordNumber can be easily obtained from the data itself,
-   have chosen this approach. 
+   Have implemented i) if there is an update of the name or location (or both) of the sub-contractor, will throw a DatabaseException.
+   Initially implemented option ii) but as I began implementing the locking solution I realised that this was going to cause complexity.
+   As Thread-Two could be requesting a lock for a record based on the hash of an existing record. Thread-One updates the composite key 
+   fields for the same record, and Thread-Two now wakes and tries to acquire a lock on a record that no longer exists. Has to re-calculate the
+   new key based on a read of all records and then try acquire a lock on a new record. 
+    
 
 
-
+10. Find method, assumed that the find must take a valid record size for its parameters.
 
  
 	
