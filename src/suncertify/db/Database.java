@@ -153,6 +153,7 @@ public class Database {
 	 * @return the integer index of newly created/updated record
 	 * @throws DuplicateKeyException
 	 * @throws RecordNotFoundException
+	 * @throws DatabaseException
 	 */
 	private int persistSubcontractor(String[] data, Integer recordNumber, boolean isValidRecord) {
 		boolean createNewRecord = (recordNumber == null);
@@ -239,6 +240,7 @@ public class Database {
 		
 		return recordKey;
 	}
+	
 
 	/**
 	 * returns a 0 or 1 valued string byte array

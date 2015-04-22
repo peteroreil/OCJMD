@@ -80,27 +80,20 @@ public class SubcontractorTest {
 	
 	@Test
 	public void shouldReturnTrueForTwoEqualSubContractors() {
-		Subcontractor otherSubContractor = new Subcontractor();
-		String name = "name";
-		String city = "city";
-		subcontractor.setCityName(city);
-		subcontractor.setName(name);
-		otherSubContractor.setCityName(city);
-		otherSubContractor.setName(name);
-		assertTrue(subcontractor.equals(otherSubContractor));
+		String[] subC = {"name", "city", "specialities", "2", "", ""};
+		Subcontractor sub = new Subcontractor(subC);
+		Subcontractor otherSubContractor = new Subcontractor(subC);
+		
+		assertTrue(sub.equals(otherSubContractor));
 	}
 	
 	@Test
-	public void shouldReturnFalseForTwoEqualSubContractors() {
-		Subcontractor otherSubContractor = new Subcontractor();
-		String name = "name";
-		String city = "city";
-		String otherCity = "otherCity";
-		subcontractor.setCityName(otherCity);
-		subcontractor.setName(name);
-		otherSubContractor.setCityName(city);
-		otherSubContractor.setName(name);
-		assertFalse(subcontractor.equals(otherSubContractor));
+	public void shouldReturnFalseForTwoEqualSubContractors() {		
+		String[] subC = {"name", "city", "specialities", "2", "", ""};
+		String[] otherSub = {"name", "othercity", "specialities", "2", "", ""};
+		Subcontractor sub = new Subcontractor(subC);
+		Subcontractor otherSubContractor = new Subcontractor(otherSub);
+		assertFalse(sub.equals(otherSubContractor));
 	}
 
 	@Test

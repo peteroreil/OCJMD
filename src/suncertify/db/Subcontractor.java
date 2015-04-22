@@ -58,7 +58,17 @@ public class Subcontractor implements Serializable{
 		this.customerId = customerId;
 	}
 	
-	
+	public Subcontractor(String[] record) {
+		if (record == null || record.length < this.toArray().length) {
+			throw new IllegalArgumentException();
+		}		
+		this.setName(record[0]); 
+		this.setCityName(record[1]);
+		this.setSpecialities(record[2]); 
+		this.setEmployeeCount(record[3]); 
+		this.setHourlyRate(record[4]); 
+		this.customerId = record[5];
+	}
 
 	/**
 	 * @return the Subcontractor's name
@@ -70,7 +80,7 @@ public class Subcontractor implements Serializable{
 	/**
 	 * @param subcontractorName sets the Subcontractor's name
 	 */
-	public void setName(String subcontractorName) {
+	private void setName(String subcontractorName) {
 		if(subcontractorName == null) {
 			throw new IllegalArgumentException("You must provide a valid Subcontractor Name " + null);
 		}
@@ -87,7 +97,7 @@ public class Subcontractor implements Serializable{
 	/**
 	 * @param cityName sets the city name that the Subcontractor operates in
 	 */
-	public void setCityName(String cityName) {
+	private void setCityName(String cityName) {
 		if(cityName == null) {
 			throw new IllegalArgumentException("You must provide a valid City Name "+ cityName);
 		}
