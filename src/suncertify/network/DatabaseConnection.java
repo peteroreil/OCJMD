@@ -17,7 +17,6 @@ public class DatabaseConnection extends UnicastRemoteObject implements RemoteDat
 	private Data data;
 
 	public DatabaseConnection() throws RemoteException {
-		System.out.println("New Database being created ...");
 		try {
 			this.data = new Data();
 		} catch (DatabaseException dbe){
