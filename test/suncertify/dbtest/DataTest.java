@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
-import java.util.List;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -17,7 +16,6 @@ import org.junit.Test;
 import suncertify.db.Data;
 import suncertify.db.DuplicateKeyException;
 import suncertify.db.RecordNotFoundException;
-import suncertify.db.Subcontractor;
 import static java.nio.file.StandardCopyOption.*;
 
 /**
@@ -32,7 +30,7 @@ public class DataTest {
 	
 	@BeforeClass
 	public static void setUp() throws IOException {
-		String testDB = System.getProperty("user.dir") + File.separator + "testdb";
+		String testDB = System.getProperty("user.dir") + File.separator + "testdb" + File.separator +"db-2x1.db";
 		sourceFile = new File(System.getProperty("user.dir") + File.separator + "db-2x1.db");
 		targetFile = new File(System.getProperty("user.dir") + File.separator + "testdb" + File.separator + "db-2x1.db");
 		Files.copy(sourceFile.toPath(), targetFile.toPath(), REPLACE_EXISTING);		
@@ -41,14 +39,14 @@ public class DataTest {
 	
 	private int getContractorsSize(boolean print) {
 		
-		List<Subcontractor> subs = data.getSubcontractors();
+		int[] subs = data.find(new String[]{null,null,null,null,null,null});
 		if (print) {
-			System.out.println("\n\n\nPRINTING SUBS: "+subs.size());
-			for (Subcontractor sub : subs) {
-				System.out.println(Arrays.asList(sub.toArray()).toString());
+			System.out.println("\n\n\nPRINTING SUBS: "+subs.length);
+			for (Integer sub : subs) {
+				System.out.println(Arrays.asList(data.read(sub)).toString());
 			}			
 		}
-		return subs.size();
+		return subs.length;
 	}
 	
 	@Test
@@ -182,7 +180,7 @@ public class DataTest {
 	}
 	
 	@Test
-	public void shouldMatchPattern() {		
+	public void shouldMatchPattern()  {		
 		String[] patternRecord = {
 				"test company pattern",
 				"test city pattern",
@@ -198,13 +196,13 @@ public class DataTest {
 	
 
 	@Test
-	public void shouldReturnEmptyResultIfIncorrectParameters() {
+	public void shouldReturnEmptyResultIfIncorrectParameters()  {
 		int[] results = data.find(null);
 		assertNotNull(results);		
 	}
 	
 	@Test
-	public void shouldReturnEmptyResultIfInsufficientFields() {		
+	public void shouldReturnEmptyResultIfInsufficientFields()  {		
 		String[] patternRecord = {
 				"test company pattern",
 				"test city pattern",
@@ -218,7 +216,7 @@ public class DataTest {
 	}
 	
 	@Test
-	public void shouldReturnRecordWhenPassedSingleMatchingField() {
+	public void shouldReturnRecordWhenPassedSingleMatchingField()  {
 		String uniqueField = "auniquefield";
 		String[] patternRecord = {
 				"test company pattern test two",
@@ -236,14 +234,14 @@ public class DataTest {
 	}
 	
 	@Test
-	public void shouldReturnAllResultsIfFieldCriteriaIsNull() {
+	public void shouldReturnAllResultsIfFieldCriteriaIsNull()  {
 		int[] results = data.find(new String[]{"","","","","", null});
 		int countractorCount = getContractorsSize(false);
 		assertEquals(countractorCount, results.length);
 	}
 	
 	@Test
-	public void shouldReturnNoneIfNoStringsPassed() {
+	public void shouldReturnNoneIfNoStringsPassed()  {
 		int[] results = data.find(new String[]{"", "", "", "", "", ""});
 		int expected = 0;
 		int actual = results.length;
@@ -251,7 +249,7 @@ public class DataTest {
 	}
 	
 	@Test
-	public void secondDatabase() {
+	public void secondDatabase()  {
 		int count = getContractorsSize(false);
 		Data data2 = new Data();
 		
@@ -269,7 +267,7 @@ public class DataTest {
 	}
 	
 	@Test
-	public void testThreadsLocking() throws InterruptedException {
+	public void testThreadsLocking() throws InterruptedException, RecordNotFoundException {
 		
 		class Competitor extends Thread {
 			private Data data;
@@ -284,9 +282,14 @@ public class DataTest {
 			
 			@Override
 			public void run() {
-				this.data.lock(this.recNo);
-				this.data.update(this.recNo, this.recordArray);
-				this.data.unlock(recNo);
+				try {
+					this.data.lock(this.recNo);
+					this.data.update(this.recNo, this.recordArray);
+					this.data.unlock(recNo);
+				} catch (RecordNotFoundException e) {
+					e.printStackTrace();
+				}
+
 			}
 		}
 		

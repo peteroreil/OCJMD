@@ -1,7 +1,5 @@
 package suncertify.db;
 
-import java.util.List;
-
 /**
  * Data class. Facade.
  * Hiding logic required to lock and perform crud and search
@@ -11,7 +9,7 @@ import java.util.List;
  * @version 1.0.0  
  */
 
-public class Data implements DBMain{
+public class Data implements DBMain {
 
 	private Database database = null;
 	private LockManager lockManager = null;
@@ -63,10 +61,5 @@ public class Data implements DBMain{
 	@Override
 	public boolean isLocked(int recNo) throws RecordNotFoundException {
 		return lockManager.isLocked(recNo);
-	}
-	
-	public List<Subcontractor> getSubcontractors() {
-		return database.getSubcontractors();
-	}
-		
+	}	
 }

@@ -3,7 +3,6 @@
  */
 package suncertify.db;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -18,7 +17,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
 public class Database {
-	private static final String DATABASE_FILENAME = "db-2x1.db";
 	private static final String ENCODING = "US-ASCII";	
     private static final int MAGIC_COOKIE_BYTES = 4;
     private static final int RECORD_LENGTH_BYTES = 4;
@@ -37,7 +35,7 @@ public class Database {
 	 */
 	public Database(String databaseFilePath) {
 		if (databaseFile == null) {
-			String databasePath = databaseFilePath + File.separator + DATABASE_FILENAME;
+			String databasePath = databaseFilePath;
 			String readWrite = "rw";
 			try {
 				databaseFile = new RandomAccessFile(databasePath, readWrite);				
@@ -53,7 +51,7 @@ public class Database {
 	 * @return String array record read from database file
 	 * @throws RecordNotFoundException
 	 */
-	public String[] read(int recNo) {
+	public String[] read(int recNo) throws RecordNotFoundException {
 		Long recordLocation = null;
 		
 		recordLocation = this.getSubcontractor(recNo);			
