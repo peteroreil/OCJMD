@@ -1,6 +1,3 @@
-/**
- * 
- */
 package suncertify.db;
 
 import java.util.HashMap;
@@ -10,6 +7,13 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 
+/**
+ * Handles the locking and realeasing of record numbers.
+ * This class's methods are only intended to be called by the Data.java class
+ * 
+ * @author Peter O'Reilly
+ * @version 1.0.0
+ */
 class LockManager {
 	
 	private static Map<Integer, Data> lockedRecords
@@ -26,7 +30,7 @@ class LockManager {
 	 * @param recNo record number to lock
 	 * @param data data Threads instance of Data
 	 */
-	public void lock(int recNo, Data data) {
+	void lock(int recNo, Data data) {
 		lock.lock();
 
 		try {
@@ -53,7 +57,7 @@ class LockManager {
 	 * @param data
 	 * 
 	 */
-	public void unlock(int recNo, Data data) {
+	void unlock(int recNo, Data data) {
 		lock.lock();
 		
 		try {
@@ -70,11 +74,13 @@ class LockManager {
 	
 	
 	/**
-	 * @param recNo the record number to check.
+	 * Determines if a record is currently locked. Returns true if the
+	 * record is locked, false otherwise.
+	 * @param recNo - the record number to check.
 	 * @return boolean 	true if another thread has registered 
 	 * a lock on the requested recNo
 	 */
-	public boolean isLocked(int recNo) {
+	boolean isLocked(int recNo) {
 		return lockedRecords.containsKey(recNo);
 	}
 

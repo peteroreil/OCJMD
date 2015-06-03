@@ -1,9 +1,5 @@
-/**
- * 
- */
 package suncertify.db;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
@@ -15,8 +11,17 @@ import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import java.io.FileNotFoundException;
 
-public class Database {
+
+/**
+ * Database.java
+ * This class implements the CRUD operations on the database
+ * file. This class's methods are only intended to be called by the Data.java class
+ * @author Peter O'Reilly
+ * @version 1.0.0
+ */
+class Database {
 	private static final String ENCODING = "US-ASCII";	
     private static final int MAGIC_COOKIE_BYTES = 4;
     private static final int RECORD_LENGTH_BYTES = 4;
@@ -26,11 +31,14 @@ public class Database {
 	private static String recordHolder = new String(new byte[Subcontractor.TOTAL_RECORD_LENGTH]);
 	private static RandomAccessFile databaseFile = null;
 	private static ReadWriteLock recordNumbersLock = new ReentrantReadWriteLock();
-	public static Map<Integer, Long> recordLocations = new HashMap<Integer, Long>();
+	private static Map<Integer, Long> recordLocations = new HashMap<Integer, Long>();
 
 
 	/**
-	 * @param String databaseFilePath absolute path to database file.
+	 * Database constructor take a single argument the absolute path to the
+	 * database file. Throws a database exception in the event of of file not 
+	 * found.
+	 * @param databaseFilePath - string absolute path to database file.
 	 * @throws DatabaseException
 	 */
 	public Database(String databaseFilePath) {
@@ -47,11 +55,13 @@ public class Database {
 	}
 
 	/**
-	 * @param recNo
+	 * Reads the specified record number and returns a String
+	 * array containing the record values.
+	 * @param recNo - the record number to read
 	 * @return String array record read from database file
 	 * @throws RecordNotFoundException
 	 */
-	public String[] read(int recNo) throws RecordNotFoundException {
+	String[] read(int recNo) throws RecordNotFoundException {
 		Long recordLocation = null;
 		
 		recordLocation = this.getSubcontractor(recNo);			
@@ -70,16 +80,14 @@ public class Database {
 	}
 	
 	/**
-	 * <p>
 	 * Writes a new record to databases.
 	 * Requires a String[] of length 6 exactly. 
-	 * <p>
-	 * @param data		the new record to create
+	 * @param data - the new record to create
 	 * @return the newly created record, record number
 	 * @throws DuplicateKeyException
 	 * @throws IllegalArgumentException
 	 */
-	public int create(String[] data) {
+	int create(String[] data) {
 		validateData(data);
 		return persistSubcontractor(data, null, true);
 	}
@@ -98,24 +106,31 @@ public class Database {
 	 * @throws RecordNotFoundException
 	 * @throws IllegalArgumentException
 	 */
-	public void update(int recNo, String[] data) {
+	void update(int recNo, String[] data) {
 		validateData(data);		
 		persistSubcontractor(data, recNo, true);
 	}
 	
 	/**
+	 * Deletes the supplied record number and updates 
+	 * the database file that a record is no longer valid.
 	 * @param recNo
 	 * @throws RecordNotFoundException
 	 */
-	public void delete(int recNo) {
+	void delete(int recNo) {
 		persistSubcontractor(null, recNo, false);		
 	}
 	
 	/**
-	 * @param criteria
-	 * @return
+	 * Searches for all records that match or contain
+	 * the subset of the criteria. Will return all records
+	 * if any one of the search criteria is null valued.
+	 * @param criteria - string array of search criteria, must be 
+	 * an array of length 6.
+	 * @return integer array containing record numbers of all 
+	 * matching records
 	 */
-	public int[] find(String[] criteria) {
+	int[] find(String[] criteria) {
 		try {
 			validateData(criteria);
 		} catch (IllegalArgumentException | DatabaseException e) {
@@ -141,7 +156,7 @@ public class Database {
 	}
 
 	/**
-	 * Persists a record to the database file.
+	 * Persists a record to the database file
 	 * If an update an Integer recordNumber is required,
 	 * if recordNumber is null it is considered a create. 
 	 * 
@@ -241,8 +256,10 @@ public class Database {
 	
 
 	/**
-	 * returns a 0 or 1 valued string byte array
-	 * @param b
+	 * Parses integer 0 or 1 to string. If argument is 
+	 * true will return 0 parsed to string.
+	 * @return a 0 or 1 valued string byte array
+	 * @param isValid - boolean flag true or false
 	 */
 	private String getValidRecordFlag(boolean isValid) {
 		int flag = 0;
@@ -258,11 +275,13 @@ public class Database {
 	}
 	
 	/**
+	 *Retrieves a list of Subcontractor Objects from the database file. If the 
+	 *boolean isWriteLocked is true, it will store the record numbers and their 
+	 *respective locations in the database file, in the recordLocations Map using the 
+	 *record number as a key where the location in the file is the associated value.
 	 * @return list of subcontractors from database file
 	 * @param boolean isWriteLocked
-	 * 
-	 * if is writeLocked is true will obtain a write lock on the record
-	 * numbers map and populate/update it.
+	 * @throws DatabaseException 
 	 */
 	private List<Subcontractor> getSubcontractors(boolean isWriteLocked) {
 		List<Subcontractor> subcontractors = new ArrayList<Subcontractor>();
@@ -299,7 +318,12 @@ public class Database {
 		return subcontractors;
 	}
 	
-	public List<Subcontractor> getSubcontractors() {
+	/**
+	 * Returns a list of Subcontractor objects without an update
+	 * to the record map
+	 * @return List of Subcontractor objects
+	 */
+	private List<Subcontractor> getSubcontractors() {
 		return getSubcontractors(false);
 	}
 	
@@ -349,8 +373,12 @@ public class Database {
 	}
 
 	/**
-	 * @param locationInFile
-	 * @return Subcontractor
+	 * Reads the database file at the specifed offset
+	 * locationInFile. Reads 183 bytes, one byte for valid record and 
+	 * 182 for the record itself. Synchronizes on the databaseFile 
+	 * RandomAccessFile.
+	 * @param locationInFile - the offset to the location of record in file
+	 * @return Subcontractor record read starting from the offset location.
 	 * @throws DatabaseException 
 	 */
 	private Subcontractor retrieveSubcontrator(long locationInFile) {

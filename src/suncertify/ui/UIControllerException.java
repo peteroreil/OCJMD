@@ -1,5 +1,6 @@
 package suncertify.ui;
 
+
 public class UIControllerException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;

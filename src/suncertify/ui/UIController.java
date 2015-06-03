@@ -5,8 +5,10 @@ import java.rmi.RemoteException;
 import suncertify.db.DBMain;
 import suncertify.db.LocalDBConnector;
 import suncertify.db.RecordNotFoundException;
+import suncertify.db.Subcontractor;
 import suncertify.rmi.RemoteDBConnector;
 import suncertify.rmi.RemoteDBMain;
+
 
 public class UIController {
 
@@ -76,14 +78,21 @@ public class UIController {
 			updatedRecord[i] = record[i];
 		}
 		
-		updatedRecord[5] = customerID;
+		updatedRecord[5] = null;
+		Subcontractor subcontractor = new Subcontractor(updatedRecord);
 		
-		int recNo = (record[0] + record[1]).hashCode();
+		try {			
+			subcontractor.setCustomerId(customerID);
+		} catch (IllegalArgumentException iae) {
+			throw new UIControllerException("Error setting customer id.\nEnsure customer ID is numeric \nand 8 digits in length");
+		}
+		
+		int recNo = (subcontractor.hashCode());
 		
 		if (mode == ApplicationMode.CLIENT) {
 			try {
 				remoteConnection.lock(recNo);
-				remoteConnection.update(recNo, updatedRecord);
+				remoteConnection.update(recNo, subcontractor.toArray());
 			} catch (RecordNotFoundException e) {
 				throw new UIControllerException("Record not found\n " +
 						e.getMessage());
@@ -102,7 +111,7 @@ public class UIController {
 		} else if (mode == ApplicationMode.STANDALONE) {
 			try {
 				standaloneConnection.lock(recNo);
-				standaloneConnection.update(recNo, updatedRecord);
+				standaloneConnection.update(recNo, subcontractor.toArray());
 			} catch (RecordNotFoundException e) {
 				throw new UIControllerException("Record not found\n " +
 						e.getMessage());

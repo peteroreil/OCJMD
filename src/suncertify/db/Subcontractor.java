@@ -1,16 +1,13 @@
 package suncertify.db;
 
-import java.io.Serializable;
-
 /**
- * Subcontractor class used as a transfer object
+ * Subcontractor.java
+ * An Subcontractor object representation of a subcontractor record
  * 
  * @author Peter O'Reilly
  * @version 1.0.0  
  */
-
-
-public class Subcontractor implements Serializable{
+public class Subcontractor {
 
 	public static final int RECORD_LENGTH = 182;
     public static final int VALID_RECORD_LENGTH = 1; 
@@ -28,7 +25,6 @@ public class Subcontractor implements Serializable{
 	public static final int OWNER_BYTES_LENGTH = 5;
 	public static final int OWNER_LENGTH = 8;
 	
-	private static final long serialVersionUID = 1L;
 	private String specialities;
 	private String name;
 	private String cityName;

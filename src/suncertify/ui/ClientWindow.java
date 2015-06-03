@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -20,6 +19,13 @@ import javax.swing.ListSelectionModel;
 
 import suncertify.main.Runner;
 
+/**
+ * ClientWindow.java
+ * The main client window for the Bodgit & Scarper application
+ * 
+ * @author Peter O'Reilly
+ * @version 1.0.0
+ */
 public class ClientWindow extends JFrame {
 
 	private static final long serialVersionUID = 1L;
@@ -33,6 +39,11 @@ public class ClientWindow extends JFrame {
 	private JLabel searchNameLabel = new JLabel("Name: ");
 	private JLabel searchLocationLabel = new JLabel("Location: ");
 	
+	/**
+	 * Creates an instance of <code>ConfigurationDialog</code> and then launches the main 
+	 * window after retrieving the required configuraiton information.
+	 * @param mode - the client mode that the client application will run in
+	 */
 	public ClientWindow(ApplicationMode mode) {
 		super("Bodgit & Scarper");
 		initializeFrame();
@@ -42,6 +53,11 @@ public class ClientWindow extends JFrame {
 		initializeUI();						
 	}
 	
+	/*
+	 * Initializes and assigns the Clientwindow's instance of the controller
+	 * of the MVC design pattern.
+	 * Displays a JOptionPane to the user in event of exception
+	 */
 	private void initializeController() {
 		try {
 			this.controller = new UIController(mode,
@@ -54,11 +70,21 @@ public class ClientWindow extends JFrame {
 		
 	}
 
+	/*
+	 * Sets location and default exit 
+	 */
 	private void initializeFrame() {
 		this.setLocationRelativeTo(null);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);		
 	}
 
+	/*
+	 * Creates all UI Elements
+	 * Creates the JMenuBar
+	 * Creates the AbstractTableModel
+	 * Adds the AbstractTableModel to the JTable
+	 * Creates all Panels and adds to the ClientWindow 
+	 */
 	private void initializeUI() {
 		this.setSize(800, 400);
 		this.setLocationRelativeTo(null);
@@ -70,6 +96,10 @@ public class ClientWindow extends JFrame {
 		this.setVisible(true);
 	}
 	
+	/*
+	 * get an instance of AbstractTableModel from the controller
+	 * which contains all Subcontractor Records
+	 */
 	private void getTableModel() {
 		try {	
 			this.tableModel = controller.getAllSubcontractors();
@@ -78,6 +108,9 @@ public class ClientWindow extends JFrame {
 		}
 	}
 
+	/*
+	 * Set JTable Properties
+	 */
 	private void configureJTable() {
 		subcontractorTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		subcontractorTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);	
@@ -107,7 +140,14 @@ public class ClientWindow extends JFrame {
 	}
 	
 	
-	
+	/**
+	 * MainScreen.java
+	 * Private inner class
+     * The main panel for the <code>ClientWindow</code> class application
+     * 
+	 * @author Peter O'Reilly
+	 * @version 1.0.0
+	 */
 	private class MainScreen extends JPanel {
 		
 		private static final long serialVersionUID = 1L;
@@ -115,6 +155,13 @@ public class ClientWindow extends JFrame {
 		private JPanel bookingPanel;
 		private JPanel containerPanel;
 		
+		/**
+		 * Creates an instance ofthe main panel for the 
+		 * client application. Creates the JScrollPane.
+		 * Creates a wrapper panel that contains both
+		 * a search fields panel and booking panel and adds 
+		 * them to the MainScreen instance.
+		 */
 		public MainScreen() {
 			this.setLayout(new BorderLayout());
 			addScrollPane();
@@ -123,6 +170,11 @@ public class ClientWindow extends JFrame {
 			createContainerPanel();
 		}
 
+		/**
+		 * Creates a <code>JPanel</code> <b>containerPanel</b> and
+		 * adds both the <b>searchPanel</b> and <b>bookingPanel</b>
+		 * to it.
+		 */
 		private void createContainerPanel() {
 			containerPanel = new JPanel(new BorderLayout());
 			containerPanel.add(searchPanel, BorderLayout.NORTH);
@@ -130,6 +182,14 @@ public class ClientWindow extends JFrame {
 			this.add(containerPanel, BorderLayout.SOUTH);
 		}
 
+		/**
+		 * creates the <code>JPanel</code> <b>bookingPanel</b>.
+		 * The bookingPanel contains a single <code>JButton</code>
+		 * This method adds the button and <code>ActionListener</code>
+		 * which launches a <code>JOptionPane</code> to prompt for
+		 * the 8-digit customer ID. This customer ID is then passed to
+		 * the controller which attempts to book the record.
+		 */
 		private void createBookingPanel() {
 			JButton bookButton = new JButton("Book");
             bookingPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -145,8 +205,8 @@ public class ClientWindow extends JFrame {
 						JOptionPane.showMessageDialog(null, "Please select a record to book");
 					} else {
 						String customerID = JOptionPane.showInputDialog(null, "Please enter 8 digit customer ID",
-								"Booking", JOptionPane.OK_CANCEL_OPTION);
-						
+									"Booking", JOptionPane.OK_CANCEL_OPTION);
+					
 						int columns = subcontractorTable.getColumnCount();
 						String[] record = new String[columns];
 						for (int i = 0; i < columns ; i++) {
@@ -164,7 +224,15 @@ public class ClientWindow extends JFrame {
             	
             });
 		}
-
+		
+		/**
+		 * This creates a <code>JPanel</code> and adds two <code>JTextField</code>'s.
+		 * One for name search field and one for the location search field.
+		 * A <code>JButton</code> is added for the search button and adds an 
+		 * <code>ActionListener</code> which calls the 
+		 * <code>searchSubcontractors(String[] criteria)</code> method of the 
+		 * <code>UIController</code> class.
+		 */
 		private void createSearchPanel() {			
             JButton searchButton = new JButton("Search");
             searchPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -187,6 +255,10 @@ public class ClientWindow extends JFrame {
 				}});
 		}
 
+		/*
+		 * Creates a JScrollPane and adds the subcontractorTable
+		 * (JTable) to it.
+		 */
 		private void addScrollPane() {
 			JScrollPane scroll = new JScrollPane(subcontractorTable);
 			scroll.setSize(600, 350);

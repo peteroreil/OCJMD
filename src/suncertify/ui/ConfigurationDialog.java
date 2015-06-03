@@ -1,6 +1,3 @@
-/**
- * 
- */
 package suncertify.ui;
 
 import java.awt.Color;
@@ -13,7 +10,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -23,6 +19,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import suncertify.ui.ApplicationMode;
+
 
 public class ConfigurationDialog extends JDialog {
 

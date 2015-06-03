@@ -7,7 +7,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
-
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -81,6 +80,7 @@ public class ServerWindow extends JFrame {
 	}
 
 	private class ServerScreen extends JPanel {
+		
 		private static final long serialVersionUID = 1L;
 
 		public ServerScreen(String dbFile, String port) {

@@ -1,6 +1,3 @@
-/**
- * 
- */
 package suncertify.ui;
 
 import java.io.File;
@@ -9,14 +6,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+
 public class PropertiesManager {
 
-	private static final String PROP_FILENAME = "suncertify.properties";	
 	public static final String CLIENT_SERVERHOST_PROP = "client.serverhost";
 	public static final String CLIENT_SERVERPORT_PROP = "client.serverport";		
 	public static final String STANDALONE_DBFILE_PROP = "standalone.databasefile";		
 	public static final String SERVER_SERVERPORT_PROP = "server.serverport";
 	public static final String SERVER_DBFILE_PROP = "server.databasefile";
+	private static final String PROP_FILENAME = "suncertify.properties";
 	private File propFile = null;
 	private Properties properties = null;	
 	

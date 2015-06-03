@@ -5,6 +5,16 @@ import java.rmi.RemoteException;
 import suncertify.db.DuplicateKeyException;
 import suncertify.db.RecordNotFoundException;
 
+
+/**
+ * RemoteDBMain.java
+ * A duplicate of <code>DBMain</code> which declares the the throwing of 
+ * RemoteException in the method signature of methods declared 
+ * in the <code>DBMain</code> interface.
+ * 
+ * @author Peter O'Reilly
+ * @version 1.0.0
+ */
 public interface RemoteDBMain {
 	// Reads a record from the file. Returns an array where each
 	  // element is a record value.

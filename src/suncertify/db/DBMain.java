@@ -1,7 +1,6 @@
 package suncertify.db;
 
 
-
 public interface DBMain {
 	// Reads a record from the file. Returns an array where each
 	  // element is a record value.
@@ -44,8 +43,8 @@ public interface DBMain {
 	  public void unlock(int recNo) throws RecordNotFoundException;
 
 
-	  // Determines if a record is currently locked. Returns true if the
-	  // record is locked, false otherwise.
+//	   Determines if a record is currently locked. Returns true if the
+//	   record is locked, false otherwise.
 	  public boolean isLocked(int recNo)
 	    throws RecordNotFoundException;
 	}
