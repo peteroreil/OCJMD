@@ -3,7 +3,8 @@ package suncertify.main;
 import javax.swing.JOptionPane;
 
 import suncertify.ui.ApplicationMode;
-import suncertify.ui.MainWindow;
+import suncertify.ui.ClientWindow;
+import suncertify.ui.ServerWindow;
 
 public class Runner {
 	
@@ -11,7 +12,12 @@ public class Runner {
 	
 	public static void main(String ... args) {
 		setApplicationMode(args);
-		new MainWindow(mode);
+		
+		if (mode == ApplicationMode.SERVER) {
+			new ServerWindow(mode);
+		} else {
+			new ClientWindow(mode);
+		}		
 	}
 
 	private static void setApplicationMode(String[] args) {

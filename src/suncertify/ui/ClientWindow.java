@@ -4,8 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.rmi.AlreadyBoundException;
-import java.rmi.RemoteException;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -21,9 +19,8 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 
 import suncertify.main.Runner;
-import suncertify.rmi.Server;
 
-public class MainWindow extends JFrame {
+public class ClientWindow extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 	private ConfigurationDialog config;
@@ -36,18 +33,13 @@ public class MainWindow extends JFrame {
 	private JLabel searchNameLabel = new JLabel("Name: ");
 	private JLabel searchLocationLabel = new JLabel("Location: ");
 	
-	public MainWindow(ApplicationMode mode) {
+	public ClientWindow(ApplicationMode mode) {
 		super("Bodgit & Scarper");
 		initializeFrame();
 		this.mode = mode;
-		this.config = new ConfigurationDialog(this, mode);
-		
-		if (mode == ApplicationMode.SERVER) {
-			startServer();			
-		} else {
-			initializeController();
-			initializeUI();			
-		}		
+		this.config = new ConfigurationDialog(this, mode);		
+		initializeController();
+		initializeUI();						
 	}
 	
 	private void initializeController() {
@@ -67,19 +59,6 @@ public class MainWindow extends JFrame {
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);		
 	}
 
-	private void startServer() {
-		int port = config.getServerPort();
-		String dbFile = config.getDBFilePath();
-		
-		try {
-			new Server(port, dbFile);
-		} catch (RemoteException e) {
-			Runner.displayException(e.getMessage());
-		} catch (AlreadyBoundException e) {
-			Runner.displayException(e.getMessage());
-		}
-	}
-	
 	private void initializeUI() {
 		this.setSize(800, 400);
 		this.setLocationRelativeTo(null);
