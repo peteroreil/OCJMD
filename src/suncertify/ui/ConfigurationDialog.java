@@ -21,6 +21,14 @@ import javax.swing.JTextField;
 import suncertify.ui.ApplicationMode;
 
 
+/**
+ * ConfigurationDialog.java 
+ * A common Dialog used by both the client and server for configuring the 
+ * location of database file, server port and server address.
+ * 
+ * @author Peter O'Reilly
+ * @version 1.0.0
+ */
 public class ConfigurationDialog extends JDialog {
 
 	private static final long serialVersionUID = 1L;
@@ -39,8 +47,17 @@ public class ConfigurationDialog extends JDialog {
 	private PropertiesManager propManager;
 	private ApplicationMode mode = null;
 	
-	public ConfigurationDialog(JFrame frame, ApplicationMode mode) {
-		super(frame, "Configure Datasource");
+	/**
+	 * Constructor for ConfigurationDialog. 
+	 * Creates a dialog for capturing application configuration details.
+	 * 
+	 * @param frame - the parent JFrame
+	 * @param mode - the <code>suncertify.ui.ApplicationMode</code> the 
+	 * application is running in
+	 * @param title - string title for JDialog title bar
+	 */
+	public ConfigurationDialog(JFrame frame, ApplicationMode mode, String title) {
+		super(frame, title);
 		this.mode = mode;
 		this.propManager = new PropertiesManager();
 		this.setModal(true);
@@ -49,14 +66,22 @@ public class ConfigurationDialog extends JDialog {
 		loadConfiguration();
 		initializeGUI();	
 		addActionListeners();
-		this.setVisible(true);
+		this.setVisible(true);	
 	}
 	
+	/*
+	 * closes the ConfigurationDialog
+	 */
 	private void closeDialog() {
 		this.setVisible(false);
 		this.dispose();
 	}
 
+	/*
+	 * Loads previously saved configurations from the
+	 * suncertify.properties file to the text fields of the 
+	 * ConfiguriatonDialog.
+	 */
 	private void loadConfiguration() {		
 		if (mode == ApplicationMode.CLIENT) {
 			String serverIPAddress = propManager
@@ -77,13 +102,17 @@ public class ConfigurationDialog extends JDialog {
 			this.serverPortTextField.setText(hostPortNumber);
 		
 		} else {
-			// is standalone
 			String dbFilePath = propManager
 					.getProperty(PropertiesManager.STANDALONE_DBFILE_PROP);
 			this.dbFileTextField.setText(dbFilePath);
 		}
 	}
 
+	/*
+	 * Sets error JLabels to hidden.
+	 * Disables UI elements that are not required depending on mode that is 
+	 * started
+	 */
 	private void disableUIElements() {	
 		portErrorLabel.setForeground(Color.RED);
 		portErrorLabel.setVisible(false);
@@ -103,7 +132,6 @@ public class ConfigurationDialog extends JDialog {
 			serverIPTextField.setEnabled(false);
 			serverIPLabel.setEnabled(false);
 		} else {
-			// is standalone mode
 			serverIPTextField.setEnabled(false);
 			serverIPLabel.setEnabled(false);
 			serverPortTextField.setEnabled(false);
@@ -111,7 +139,10 @@ public class ConfigurationDialog extends JDialog {
 		}
 	}
 
-
+	/*
+	 * Adds and lays out UIComponents to ConfigurationDialog
+	 * using GridbagLayout
+	 */
 	private void initializeGUI() {
 		this.setSize(400, 220);
 		
@@ -256,10 +287,6 @@ public class ConfigurationDialog extends JDialog {
         this.getContentPane().add(buttonPanel, constraints);		
 	}
 	
-	private boolean isFieldEmpty(JTextField field) {
-		return (field.getText().length() == 0);
-	}
-	
 	private boolean validateInputs() {
 		if (mode == ApplicationMode.STANDALONE) {
 			if (isFieldEmpty(dbFileTextField)) {
@@ -274,7 +301,7 @@ public class ConfigurationDialog extends JDialog {
 				isValid = false;
 			}
 			
-			if (isFieldEmpty(serverPortTextField)) {
+			if (isFieldEmpty(serverPortTextField) || !isNumeric(serverPortTextField)) {
 				portErrorLabel.setVisible(true);
 				isValid = false;
 			}
@@ -289,7 +316,7 @@ public class ConfigurationDialog extends JDialog {
 				isValid = false;
 			}
 			
-			if (isFieldEmpty(serverPortTextField)) {
+			if (isFieldEmpty(serverPortTextField) || !isNumeric(serverPortTextField)) {
 				portErrorLabel.setVisible(true);
 				isValid = false;
 			}
@@ -300,7 +327,30 @@ public class ConfigurationDialog extends JDialog {
 		return true;
 	}
 
+	/*
+	 * Tests if a JTextField is empty
+	 */
+	private boolean isFieldEmpty(JTextField field) {
+		return (field.getText().length() == 0);
+	}
 
+	/*
+	 * Tests if the contents of a JTextField is numeric.
+	 */
+	private boolean isNumeric(JTextField numericTextField) {
+		String numericText = numericTextField.getText();
+		try {
+			Integer.parseInt(numericText);
+		} catch (NumberFormatException nfe) {
+			return false;
+		}
+		return true;
+	}
+
+	/*
+	 * Adds all ActionListeners to all buttons
+	 * using Anonymous Inner Classes
+	 */
 	private void addActionListeners() {
 		
 		this.okButton.addActionListener(new ActionListener() {		
@@ -366,12 +416,21 @@ public class ConfigurationDialog extends JDialog {
 	}
 
 
-	protected void resetErrorMessages() {
+	/*
+	 * resets all error messages displayed on ConfigurationDialog
+	 */
+	private void resetErrorMessages() {
 		dbErrorLabel.setVisible(false);
 		hostnameErrorLabel.setVisible(false);
 		portErrorLabel.setVisible(false);
 	}
 
+	/**
+	 * Returns the port number entered in the ConfigurationDialog
+	 * 
+	 * @return the integer valued port serverPort. Returns zero if 
+	 * serverPortTextField is empty
+	 */
 	public int getServerPort() {
 		String portNumber = serverPortTextField.getText();
 		
@@ -381,10 +440,18 @@ public class ConfigurationDialog extends JDialog {
 		return 0;
 	}
 	
+	/**
+	 * Returns the entered database file supplied in the ConfigurationDialog
+	 * @return the string absolute path to the selected database file
+	 */
 	public String getDBFilePath() {
 		return dbFileTextField.getText();
 	}
 	
+	/**
+	  * Returns the entered hostname supplied in the ConfigurationDialog
+	 * @return string hostname of server
+	 */
 	public String getHostname() {
 		return serverIPTextField.getText();
 	}

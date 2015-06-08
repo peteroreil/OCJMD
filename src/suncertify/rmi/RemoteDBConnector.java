@@ -1,5 +1,6 @@
 package suncertify.rmi;
 
+import java.rmi.ConnectException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -19,18 +20,14 @@ public class RemoteDBConnector {
 	 * @param host - the host ip or fqdn of remote Registry
 	 * @param port - the port the remote Registry is listening on 
 	 * @return DBRemote - Stub of the <code>DBRemoteImpl</code>
+	 * @throws ConnectException
+	 * @throws RemoteException
+	 * @throws NotBoundException
 	 */
-	public static DBRemote getConnection(String host, int port) {
-		DBRemote remoteData = null;
-		try {
-			Registry reg = LocateRegistry.getRegistry(host, port);
-			DBRemoteFactory factory = (DBRemoteFactory) reg.lookup(DBRemoteFactory.REMOTE_FACTORY);
-			remoteData = (DBRemote) factory.getDataConnection();
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		} catch (NotBoundException e) {
-			e.printStackTrace();
-		}
+	public static DBRemote getConnection(String host, int port) throws ConnectException, RemoteException, NotBoundException {
+		Registry reg = LocateRegistry.getRegistry(host, port);
+		DBRemoteFactory factory = (DBRemoteFactory) reg.lookup(DBRemoteFactory.REMOTE_FACTORY);
+		DBRemote remoteData = (DBRemote) factory.getDataConnection();
 		return remoteData;
 	}
 }

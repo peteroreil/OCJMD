@@ -21,7 +21,7 @@ import suncertify.main.Runner;
 
 /**
  * ClientWindow.java
- * The main client window for the Bodgit & Scarper application
+ * The main client window for the Bodgitt & Scarper application
  * 
  * @author Peter O'Reilly
  * @version 1.0.0
@@ -45,10 +45,10 @@ public class ClientWindow extends JFrame {
 	 * @param mode - the client mode that the client application will run in
 	 */
 	public ClientWindow(ApplicationMode mode) {
-		super("Bodgit & Scarper");
+		super("Bodgitt & Scarper");
 		initializeFrame();
 		this.mode = mode;
-		this.config = new ConfigurationDialog(this, mode);		
+		this.config = new ConfigurationDialog(this, mode, "Configure Datasource");		
 		initializeController();
 		initializeUI();						
 	}
@@ -66,8 +66,8 @@ public class ClientWindow extends JFrame {
 					  config.getServerPort());
 		} catch (UIControllerException uice) {
 			Runner.displayException(uice.getMessage());
-		}
-		
+			System.exit(-1);
+		}		
 	}
 
 	/*

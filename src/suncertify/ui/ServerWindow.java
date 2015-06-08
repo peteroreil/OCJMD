@@ -20,6 +20,12 @@ import suncertify.main.Runner;
 import suncertify.rmi.Server;
 
 
+/**
+ * ServerWindow.java
+ * The Main Server window JFrame
+ * @author Peter O'Reilly
+ * @version 1.0.0
+ */
 public class ServerWindow extends JFrame {
 
 	private static final long serialVersionUID = 1L;
@@ -28,19 +34,29 @@ public class ServerWindow extends JFrame {
 	private JTextField databaseTextField;
 	private JTextField portNumberTextField;
 	
+	/**
+	 * ServerWindow Constructor.
+	 * Initializes an instance of <code>suncertify.ui.ConfigurationDialog</code> 
+	 * and creates an instance of <code>suncertify.rmi.Server</code>
+	 * @param mode - the <code>suncertify.ui.ApplicationMode</code> the 
+	 * application is running in
+	 */
 	public ServerWindow(ApplicationMode mode) {
-		super("Bodgit & Scarper Server");
-		this.config = new ConfigurationDialog(this, mode);
+		super("Bodgitt & Scarper Server");
+		this.config = new ConfigurationDialog(this, mode, "Configure Server");
 		startServer();
 	}
 	
+	/*
+	 * Creates a new suncertify.rmi.Server object
+	 * and calls helper method to set up the ServerWindow 
+	 */
 	private void startServer() {
 		int port = config.getServerPort();
 		String dbFile = config.getDBFilePath();
 		
 		try {
 			new Server(port, dbFile);
-			initializeFrame();
 			initializeUI(dbFile, String.valueOf(port));	
 		} catch (RemoteException e) {
 			Runner.displayException(e.getMessage());
@@ -49,19 +65,25 @@ public class ServerWindow extends JFrame {
 		}
 	}
 	
-	private void initializeFrame() {
-		this.setLocationRelativeTo(null);
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);		
-	}
-	
+
+	/*
+	 * Sets JFrame properties and adds UI elements to 
+	 * ServerWindow
+	 */
 	private void initializeUI(String dbFile, String port) {
-		this.setSize(500, 200);
+		this.setLocationRelativeTo(null);
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.setSize(550, 200);
 		this.setLocationRelativeTo(null);
 		addMenuBar();
 		this.add(new ServerScreen(dbFile, port));
 		this.setVisible(true);
 	}
 	
+	/*
+	 * Creates the JMenuBar and it's items.
+	 * Adds actionlistener to menu items
+	 */
 	private void addMenuBar() {
 		JMenuBar menuBar = new JMenuBar();
 		JMenu fileMenu = new JMenu("File");
@@ -79,6 +101,13 @@ public class ServerWindow extends JFrame {
 		this.setJMenuBar(menuBar);
 	}
 
+	
+	/**
+	 * ServerScreen.java
+	 * Private inner class which layouts the UIComponents.
+	 * @author Peter O'Reilly
+	 *
+	 */
 	private class ServerScreen extends JPanel {
 		
 		private static final long serialVersionUID = 1L;
@@ -114,7 +143,7 @@ public class ServerWindow extends JFrame {
 	        constraints.fill = GridBagConstraints.NONE;
 	        constraints.anchor = GridBagConstraints.WEST;
 	        constraints.insets = new Insets(5, 5, 0, 0);
-	        this.add(new JLabel("Server Host"),  constraints);
+	        this.add(new JLabel("Database File"),  constraints);
 	        
 	        constraints = new GridBagConstraints();
 	        constraints.gridx = 1;

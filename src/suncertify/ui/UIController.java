@@ -1,5 +1,6 @@
 package suncertify.ui;
 
+import java.rmi.ConnectException;
 import java.rmi.RemoteException;
 
 import suncertify.db.DBMain;
@@ -10,12 +11,26 @@ import suncertify.rmi.RemoteDBConnector;
 import suncertify.rmi.RemoteDBMain;
 
 
+/**
+ * UIController.java
+ * The controller class in the MVC pattern.
+ * @author Peter O'Reilly
+ * @version 1.0.0
+ */
 public class UIController {
 
 	private DBMain standaloneConnection;
 	private RemoteDBMain remoteConnection; 
 	private ApplicationMode mode;
 	
+	/**
+	 * UIController constructor
+	 * @param mode - <code>suncertify.ui.ApplicationMode</code> application is running in
+	 * @param dbFile - the <code>String</code> location of database file
+	 * @param host - the <code>String</code> hostname of server
+	 * @param port - the <code>int</code> port of server
+	 * @throws UIControllerException
+	 */
 	public UIController(ApplicationMode mode, String dbFile,
 			String host, int port) throws UIControllerException{
 		this.mode = mode;
@@ -26,15 +41,29 @@ public class UIController {
 			} else {
 				standaloneConnection = LocalDBConnector.getConnection(dbFile);
 			}
+		} catch (ConnectException ce) {
+			throw new UIControllerException("Unable to connect to server: "+host+" on port: " +
+					port+".\nPlease Verify Server is Running");		
 		} catch (Exception e) {
 			throw new UIControllerException(e.getMessage());
 		}
 	}
 	
+	/**
+	 * returns a SubcontractorTableModel of all records 
+	 * @return <code>suncertify.ui.SubcontractorTableModel</code> 
+	 */
 	public SubcontractorTableModel getAllSubcontractors() {
 		return searchSubcontractors("", "");
 	}
 	
+	/**
+	 * Returns a list of all matching records which match the search criteria.
+	 * @see suncertify.db.Database#find(String[])
+	 * @param name - <code>String</code> name of subcontractor to search
+	 * @param location - <code>String</code> location to search
+	 * @return <code>suncertify.ui.SubcontractorTableModel</code> of search results
+	 */
 	public SubcontractorTableModel searchSubcontractors(String name, String location) {
 		SubcontractorTableModel resultsModel = new SubcontractorTableModel();
 		if (name.length() == 0 && location.length() == 0) {
@@ -70,6 +99,15 @@ public class UIController {
 		return resultsModel;
 	}
 
+	/**
+	 * Books the specified record and applies the provided customerID to
+	 * the record. This method acquires a lock on the specified record, updates the
+	 * customer field and releases the lock on the specified record, then returns a SubscriberTableModel
+	 * of all records.
+	 * @param record - <code>String[]</code> the record to book 
+	 * @param customerID - the <code>String</code> customerID to apply to booking 
+	 * @return <code>suncertify.ui.SubcontractorTableModel</code> all records
+	 */
 	public SubcontractorTableModel bookRecord(String[] record,
 			String customerID) {
 		String[] updatedRecord = new String[6];
