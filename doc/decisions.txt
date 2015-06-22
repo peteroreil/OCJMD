@@ -2,86 +2,104 @@
 Log of all decisions, assumptions, reasoning behind design decisions
 ====================================================================
 
-Subcontractor class
--------------------
-1.	Created a Subcontractor class to be used as a transfer object - Value Object Design Pattern
-	For ease of transferring a record or data. Also allows for how params should be set, see point below
-	on setting customer ID.
-	
-2. 	List<String> chosen for specialites, list size will be unknown size.
+General Considerations
+-----------------------
 
-3. 	Subcontractor Constructor does not take the id of the customer as a parameter. Assuming that 
-	if a Subcontractor is being created that there will be no customer to be assigned immediately.
-	
-4.	The Database Schema specifies and 8 digit number for the customer ID. It is assumed that this
-	digit has to be exactly 8 Digits. Setter method setCustomerId throws and IllegalArgumentException
-	in event that param is < or > 8 digits.	
-	
-5.	The setEmployeeCount will throw IllegalArgumentException in event there is less than 0 passed as
-	an argument. Does not make sense that an sub-contractor can have negative number employees.
-	
-6.	Since no key exists in DB and there is no unique identifier for a contractor, such as telephone number,
-	Subcontractor equality is based on two attributes: their name and location. If the a contractor of the same name
-	works in the same geographic location, we have a problem. These two properties used to generate a hashCode, and are used as the
-	recNo Index.
+(Subcontractor class)
+Was used in certain areas as a transfer object. It contained the the validation logic in the getters and setters for 
+validating records (intended for use in updates and create operations)  Value Object Design Pattern
+For ease of transferring a record or data. Also allows for how params should be set, see point below
+on setting customer ID.
+
+Since no key exists in DB and there is no unique identifier for a contractor, such as telephone number,
+Subcontractor equality is based on two attributes: their name and location. If the a contractor of the same name
+works in the same geographic location, we have a problem. These two properties used to generate a hashCode, and are used as the recNo Index.
+
+equals method compares equalty based on these fields
 	
 	
 	
 
-Data class
----------------------------
-1.	Constructor allows for setting file path of db location. To cater for multiple locations, client server or stand alone 
-	scenario. Using constructor chaining.
-	
-2. Class is implementing our required interface.
+(Data class)
+Using Facade design pattern to abstract logic from user using api.
 
-3. Using Facade design pattern to abstract logic from user.
+Throwing a custom exception DatabaseException in the event of a FileNotFoundException or IOException. Reasoning if we 	switch DB to non file data source.
 
-4.	Throwing a custom exception DatabaseException in the event of a FileNotFoundException or IOException. Reasoning if we switch
-	DB to non file data source.
+Contains:
+	Database Object (Logic for File IO and CRUD operations, Multi-Threading)
+	LockManger Object (Logical record Locking)
 	
 
-Database class 
-----------------------------
-1. Made package private to enforce using Data facade.
-
-2. Added method to retrieve and populate a map of Keys for the Subcontractors and their locations in the database file.
-   Method has a boolean flag that will allow dual use of the method. True will populate the record number map (obtaining a write lock)
-   and false reading the database file and returning a list only of sub-contractors in the file.
-   Using a write lock will ensure no other thread reading or updating at the same time.
+(Database class)
+Use ReEntrantReadWriteLock for locking a recordLocations Map
+All Locked Operations carried out in try catch, with locks released in finally blocks.
+Single data structure Map<Integer, Long>. Where integer is the hashCode of the Subcontractor object
+and Long is the location of the record in the database file.
+	
+persistSubcontractor method, dual purpose, use to update or create a new instance. Decided that there will be no cache 	 implemented. That is, once the Map data structure is updated, the database file will be updated. This will impact on 		performance as the user will need to 
+acquire a write lock on both the Map (recordLocations variable) and the database file. Any users wishing to read from the database file or from the data structure will
+be blocked until the update/creation is complete. Sacrificing performance for simplicity.
    
-3. Added a getSubcontractor method which acquires a read lock, allowing for concurrent threads to read from the Map.
-
-4. retreiveSubcontractor seek and readFully are considered atomic hence in synchronized block.
-	Do not want any other thread to update while reading from location. Using readFully to ensure that record is fully read - thread not switched out 
-	mid read.
+Using StringBuilder to create New/Updated Record in persistSubcontractor. No internal Synchronization. Increased performance.
 	
-5. Single data structure Map<Integer, Long>. Where integer is the hashCode of the Subcontractor object
-	and Long is the location of the record in the database file.
-	
-6. persistSubcontractor method, dual purpose, use to update or create a new instance. Decided that there will be no cache implemented. 
-   That is, once the Map data structure is updated, the database file will be updated. This will impact on performance as the user will need to 
-   acquire a write lock on both the Map (recordLocations variable) and the database file. Any users wishing to read from the database file or from the data structure will
-   be blocked until the update/creation is complete. Sacrificing performance for simplicity.
-   
-8. Using StringBuilder to create New/Updated Record in persistSubcontractor. No internal Synchronization. Increased performance.
-	
-9. Due to having to create a recNo based on attributes of the object, Have to make a decision on whether 
-	i) those attributes can never change
-	ii) the index will have to change if those attributes change.
-
-   Have implemented i) if there is an update of the name or location (or both) of the sub-contractor, will throw a DatabaseException.
-   Initially implemented option ii) but as I began implementing the locking solution I realised that this was going to cause complexity.
-   As Thread-Two could be requesting a lock for a record based on the hash of an existing record. Thread-One updates the composite key 
-   fields for the same record, and Thread-Two now wakes and tries to acquire a lock on a record that no longer exists. Has to re-calculate the
-   new key based on a read of all records and then try acquire a lock on a new record. 
-    
 
 
-10. Find method, assumed that the find must take a valid record size for its parameters.
+Design Patterns Used
+--------------------
+MVC: The Model is the SubcontractorTableModel (an implementation of the AbstractTableModel), the view is the ClientWindow 
+the Controller is the UIController. the UIController is delegated the ActionEvents from 
+the UI and returns an instance of the SubcontractorTableModel.
+
+Facade: The main Data implementing class implements the Facade pattern. The Database and LockManager are both also
+package private to enforce this.
+
+Transfer: The Subcontractor is used in part as a Transfer Object.
+
+Factory Pattern: The DBRemoteFactory implements the Factory Pattern, creates an instance of DBRemote.  
+
+
+Record Locking 
+--------------
+The record locking is handled by a LockManager Class. A record number and its position are locked by a 
+single client application. The client locks the record using its reference to the Data class as the key and the 
+record number in the file as the value.
+
+In the event of a client disconnection, Record locking does not ensure that a record will be released.
+
+There is no enforecment of record locking in the application.
+API expects users of API to first lock the record then carry our Updates then release lock.
+
 
  
-	
-RecordUtility class
---------------------------------
-Created a RecordUtility class with two static inner classes for reading and writing from byte arrays
+Record Reads/ Writes & Updates
+------------------------------
+All updates are atomic and persisted to file. A Cache may have increased performance, but the added complexity
+of maintaining and updating a cache was avoided in favour of a simpler solution.
+
+All read operations are read operations on the Database File. As above no data is loaded to memory.
+All data is stored in file. 
+
+
+Networking Approach
+-------------------
+RMI was favoured over Sockets.
+Layer of abstraction. No propocol required to be implemented.
+RMI has thread safety built in vs multi threading has to be explicitly handled in Sockets.
+Easier and simpler implementation
+
+
+GUI / Configuraiton / Properties File
+-------------------------------------
+Two Main JFrames -  the Client Application Window and the ServerWindow.
+Both use a common ConfigurationDialog. Parameters required to Start Application 
+in all modes is similar. 
+Reuse the dialog but based on the mode started in, certain components are disabled.
+e.g. in Standalone mode the port number is disabled.
+
+Both application Windows have a PropertiesManager which encapsulates the logic for storing 
+configuration data to file. 
+
+Application reads the properties file on start up and pre-populates the ConfiguraitonDialog's fields.
+
+
+
