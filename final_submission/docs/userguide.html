@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Bodgitt & Scarper User Guide</title>
+	<style type="text/css">
+		OL { counter-reset: item }
+		LI { display: block }
+		LI:before { content: counters(item, ".") " "; counter-increment: item }
+
+		.command {
+			margin-left: 5%;
+		}
+
+		p, ol, ul, h4{
+			margin-left: 3%;
+		}
+
+		.topic {
+			margin-top:80px;
+		}
+	</style>
+</head>
+<body>
+	<section id="header">
+		<h1>Bodgitt & Scarper User Guide (v1.0.0)</h1>
+	</section>
+	<section id="toc">
+		<h3>Table of Contents</h3>
+		<ol>
+			<li><a href="#overview">Application Overview</a></li> 
+			<li><a href="#requirements">Application Requirements</a>
+			<li><a href="#run-application">How to Run the Bodgitt & Scarper Application</a>
+			<ol>
+				<li><a href="#run-server">Starting the Server in Networked Mode</a></li>
+				<li><a href="#networked-client">Starting the Client in Networked Mode</a></li>
+				<li><a href="#standalone-client">Starting the Client in Standalone Mode</a></li>
+			</ol>
+			</li>
+			<li><a href="#using-client">Using the Client GUI</a></li>
+			<li><a href="#exiting-client">Exiting the Client Application</a></li>
+		</ol>
+	</section>
+	<section id="content">
+		<div id="overview" class="topic">
+			<h3>1. Application Overview</h3>
+			<p>
+				The Bodgitt & Scarper Application allows a Customer Service Representative (CSR) </br> 
+				to search and book Subcontractors on behalf of a customer. A CSR interacts with a </br>
+				client GUI and can search Subcontractors based on the criteria of name and/or location, </br>
+				retrieve a list of relevant records from a database file, and book the required record.</br>
+				This application can be run locally or across a network using RMI.</br>
+			</p>
+			<p>
+				When the user launches the application, regardless of mode, the user will be prompted to </br>
+				enter configuration details for the first time, e.g. database file, or server port. These </br>
+				configuration details will be persisted to a properties file (suncertify.properties), where upon</br>
+				subsequent runs of the application in the same mode, these properties will be used as the default </br>
+				options for the application. </br>
+			</p>
+		</div>
+		<div id="requirements" class="topic">
+			<h3>2. Application Requirements</h3>
+			<p>
+				To run the Bodgitt & Scarper application requires an environment that supports applications </br>
+				run on Java JRE version 1.7. The Bodgitt & Scarper can run in both <b>standalone</b> or <b>networked</b> </br>
+				mode. If run in networked mode and in distributed environments, the client and server host systems must be </br>
+				networked with the specified ports free for use.</br>
+			</p>
+			<p>
+				The application <b>must be run</b> with the database file <b>db-2x1.db</b>. This file must be available on the <br>
+				server system if run in networked mode and on the client machine if run in client mode. The application should <br>
+				only be run with the deliverd database file.  
+			</p>
+			<p>
+				If the application is being run in networked mode, the server side application must be started before the client</br>
+				application(s) are started.
+			</p>
+		</div>
+		<div id="run-application" class="topic">
+			<h3>3. How to Run the Bodgitt & Scarper Application</h3>
+			<p>
+				The Bodgitt & Scarper Application can be started in 3 different modes:
+				<ul>
+					<li>Server (Networked)</li>
+					<li>Client (Networked)</li>
+					<li>Client (Standalone)</li>
+				</ul>
+			</p>
+			<p>
+				The jar file <b>runner.jar</b>, can be passed two different flags indicating which of the three modes that the application</br>
+				will be run in. </br></br>
+				<b>"server"</b>: indicates that the application will start in Server mode. </br>
+				<b>"alone"</b>: indicates that the application will start in Standalone mode.</br>
+				If no flag is passed the application will run in the <b>"networked client"</b> mode.</br>
+			</p>
+			</p>
+			<p>
+				To run the applicaton:<br>
+				<span class="command"><b>java -jar runner.jar &lsaquo;flag&rsaquo;</b></span>
+			</p>
+		</div>
+		<div id="run-server" class="topic">
+			<h3>3.1 Starting the Server in Networked Mode</h3>
+			<p>
+				To allow the application to run in <b>"server"</b> mode, where the application is made available to multiple clients over a </br>
+				network, the application must be started as follows:</br></br>
+				<span class="command"><b>java -jar runner.jar server</b><span>
+			</p>
+			<p>
+				Once the server application is started, a configuration dialog will be presented to the user, allowing the user to specify the </br>
+				location of the database file and to specify the port on which the server will receive remote connections over. </br>	
+				To select the database file, click on the "browse" button and navigate to the db-2x1.db that was supplied with this assignment.</br>
+				To enter the port number click on the Server Port text field and enter the desired port number. Please enter a port number that is </br>
+				not currently in use and is avaialble for use. Once all values are entered, press <b>OK</b> to start the server. </br></br>
+				Once the server is started a new Window will appear identifying the database file in use and the port that the server componenent is</br>
+				listening on.</br>
+			</p>
+			<p id="exit-server">If the user wishes to stop the server, they can close it in one of three ways:</br>
+				<ol>
+					<li>Exit the window</li>
+					<li>Click Exit</li>
+					<li>Select File and Exit in the menu bar</li>
+				</ol>	
+			</p>
+		</div>
+		<div id="networked-client" class="topic">
+			<h3>3.2 Starting the Client in Networked Mode</h3>
+			<p>
+				To allow the application to run in <b>"networked client"</b> mode, where the application communicates to the server on a specified</br>
+				host over a designated port, the application must be started as follows:</br></br>
+				<span class="command"><b>java -jar runner.jar </b><span>
+			</p>
+			<p>
+				After running this command a configuration dialog will be displayed to the user allowing the user to specify the server host ip or </br>
+				fully qualified domain name of the server host and the port that the server is listening on. Once these have been entered, click <b>OK</b></br>
+				and the networked client GUI will be launched.</br></br>
+				<b> Note: the server application must be started before the client application.</b>
+			</p>
+		</div>
+		<div id="standalone-client" class="topic">
+			<h3>3.3 Starting the Client in Standalone Mode</h3>
+			<p>
+				To allow the application to run in <b>"standalone"</b> mode, where the application runs in a non-networked mode and connects to a database</br>
+				file in isolation, the application must be started as follows:</br></br>
+				<span class="command"><b>java -jar runner.jar alone</b><span>
+			</p>
+			<p>
+				After running this command a configuration dialog will be displayed to the user allowing the user to specify the location of the database file.</br>
+				To select the database file, click on the "browse" button and navigate to the db-2x1.db that was supplied with this assignment.</br>
+				Once all values are entered, press <b>OK</b> and the non-networked client GUI will be launched.</br></br>
+			</p>
+		</div>
+		<div id="using-client" class="topic">
+			<h3>4. Using the Client GUI</h3>
+			<p>
+				The client GUI is used the same regardless of whether is is networked or standalone. When the GUI is started, all data is displayed to the user. </br>
+				The GUI is split into two main sections, the Table and the Interactive (Search & Book Panels).<br>				
+			</p>
+			<div>
+				<h4>Searching for a record</h4>
+				<p>
+					To search for all records available, simply hit the <b>"Search"</b> button without providing any name or location search parameters</br>				
+				</p>
+				<p>
+					To search by NAME, enter in a name int the name text arera and press search. (Will return all records that contain that name. See note below).</br>
+				</p>
+				<p>
+					To search by LOCATION, enter in a location int the location text area and press search. (Will return all records that contain that name. </br>
+					See note below).
+				</p>
+				<p>
+					<b>Note: </br></br>The Bodgitt & Scarper application implements an <b>OR</b> search condition of either field i.e. it will return all records that </br>
+					match on Name OR Location.</br></br>The application also returns all records that contain a substring of the provided search criteria. i.e. a </br>
+					recored with name "Bodgitt", will be returned with a name search critera "Bod". </br></br> All searches are case sensitive.</br></b>
+				</p>
+			</div>
+			<div>
+				<h4>Booking a record</h4>
+				<p>
+					To book a record, select the required record in the table so that it becomes highlighted and click the <b>"Book"</b> button. Once selected a dialog will be</br>
+					presented to the user prompting the user to enter an 8 digit customer ID.</br>
+					Enter an 8 digit customer ID and click "OK". The Table will then be updated with the provided customer ID value. </br> 
+				</p>
+			</div>
+		</div>
+		<div id="exiting-client" class="topic">
+			<h3>5. Exiting the Client Application</h3>
+			<p>
+				To exit the Client GUI Application, just close its window or select "Exit" from the "File" dropdown menu bar. 			
+			</p>
+			<p>
+				To exit the Server GUI Application, please see <a href="#exit-server">above</a>. 			
+			</p>
+		</div>
+	</section>
+</html>

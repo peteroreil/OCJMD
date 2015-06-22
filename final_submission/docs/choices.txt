@@ -1,0 +1,105 @@
+
+Log of all decisions, assumptions, reasoning behind design decisions
+====================================================================
+
+General Considerations
+-----------------------
+
+(Subcontractor class)
+Was used in certain areas as a transfer object. It contained the the validation logic in the getters and setters for 
+validating records (intended for use in updates and create operations)  Value Object Design Pattern
+For ease of transferring a record or data. Also allows for how params should be set, see point below
+on setting customer ID.
+
+Since no key exists in DB and there is no unique identifier for a contractor, such as telephone number,
+Subcontractor equality is based on two attributes: their name and location. If the a contractor of the same name
+works in the same geographic location, we have a problem. These two properties used to generate a hashCode, and are used as the recNo Index.
+
+equals method compares equalty based on these fields
+	
+	
+	
+
+(Data class)
+Using Facade design pattern to abstract logic from user using api.
+
+Throwing a custom exception DatabaseException in the event of a FileNotFoundException or IOException. Reasoning if we 	switch DB to non file data source.
+
+Contains:
+	Database Object (Logic for File IO and CRUD operations, Multi-Threading)
+	LockManger Object (Logical record Locking)
+	
+
+(Database class)
+Use ReEntrantReadWriteLock for locking a recordLocations Map
+All Locked Operations carried out in try catch, with locks released in finally blocks.
+Single data structure Map<Integer, Long>. Where integer is the hashCode of the Subcontractor object
+and Long is the location of the record in the database file.
+	
+persistSubcontractor method, dual purpose, use to update or create a new instance. Decided that there will be no cache 	 implemented. That is, once the Map data structure is updated, the database file will be updated. This will impact on 		performance as the user will need to 
+acquire a write lock on both the Map (recordLocations variable) and the database file. Any users wishing to read from the database file or from the data structure will
+be blocked until the update/creation is complete. Sacrificing performance for simplicity.
+   
+Using StringBuilder to create New/Updated Record in persistSubcontractor. No internal Synchronization. Increased performance.
+	
+
+
+Design Patterns Used
+--------------------
+MVC: The Model is the SubcontractorTableModel (an implementation of the AbstractTableModel), the view is the ClientWindow 
+the Controller is the UIController. the UIController is delegated the ActionEvents from 
+the UI and returns an instance of the SubcontractorTableModel.
+
+Facade: The main Data implementing class implements the Facade pattern. The Database and LockManager are both also
+package private to enforce this.
+
+Transfer: The Subcontractor is used in part as a Transfer Object.
+
+Factory Pattern: The DBRemoteFactory implements the Factory Pattern, creates an instance of DBRemote.  
+
+
+Record Locking 
+--------------
+The record locking is handled by a LockManager Class. A record number and its position are locked by a 
+single client application. The client locks the record using its reference to the Data class as the key and the 
+record number in the file as the value.
+
+In the event of a client disconnection, Record locking does not ensure that a record will be released.
+
+There is no enforecment of record locking in the application.
+API expects users of API to first lock the record then carry our Updates then release lock.
+
+
+ 
+Record Reads/ Writes & Updates
+------------------------------
+All updates are atomic and persisted to file. A Cache may have increased performance, but the added complexity
+of maintaining and updating a cache was avoided in favour of a simpler solution.
+
+All read operations are read operations on the Database File. As above no data is loaded to memory.
+All data is stored in file. 
+
+
+Networking Approach
+-------------------
+RMI was favoured over Sockets.
+Layer of abstraction. No propocol required to be implemented.
+RMI has thread safety built in vs multi threading has to be explicitly handled in Sockets.
+Easier and simpler implementation
+
+
+GUI / Configuraiton / Properties File
+-------------------------------------
+Two Main JFrames -  the Client Application Window and the ServerWindow.
+Both use a common ConfigurationDialog. Parameters required to Start Application 
+in all modes is similar. 
+Reuse the dialog but based on the mode started in, certain components are disabled.
+e.g. in Standalone mode the port number is disabled.
+
+Both application Windows have a PropertiesManager which encapsulates the logic for storing 
+configuration data to file. 
+
+Application reads the properties file on start up and pre-populates the ConfiguraitonDialog's fields.
+
+
+

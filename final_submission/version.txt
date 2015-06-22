@@ -1,0 +1,12 @@
+Developed on
+java version "1.7.0_67"
+Java(TM) SE Runtime Environment (build 1.7.0_67-b01)
+Java HotSpot(TM) 64-Bit Server VM (build 24.65-b04, mixed mode)
+
+Tested on 
+java version "1.8.0_45"
+Java(TM) SE Runtime Environment (build 1.8.0_45-b15)
+Java HotSpot(TM) 64-Bit Server VM (build 25.45-b02, mixed mode)
+
+IDE Eclipse Luna
+Windows Enterprise 7 Service Pack 1
